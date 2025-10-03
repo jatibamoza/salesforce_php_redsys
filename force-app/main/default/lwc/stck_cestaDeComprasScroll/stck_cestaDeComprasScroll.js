@@ -1,7 +1,6 @@
 // stck_cestaDeComprasScroll.js
 import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-
 // Apex
 import createOrderAndGetRedsysParams from '@salesforce/apex/STCK_CestaDeComprasController.createOrderAndGetRedsysParams';
 import verifyRedsysSignature from '@salesforce/apex/STCK_CestaDeComprasController.verifyRedsysSignature';
@@ -9,7 +8,6 @@ import checkIfStoreIsOpen from '@salesforce/apex/STCK_CestaDeComprasController.c
 import getStoreConfiguration from '@salesforce/apex/STCK_CestaDeComprasController.getStoreConfiguration';
 import validatePromoCode from '@salesforce/apex/STCK_CestaDeComprasController.validatePromoCode';
 import getCartForRecovery from '@salesforce/apex/STCK_CestaDeComprasController.getCartForRecovery';
-
 
 async function sha256HexFromString(str) {
 	const enc = new TextEncoder();
@@ -24,7 +22,6 @@ async function sha256HexFromBase64(urlSafeB64) {
 	const digest = await crypto.subtle.digest('SHA-256', bin);
 	return [...new Uint8Array(digest)].map(x => x.toString(16).padStart(2,'0')).join('');
 }
-
 // === Helpers Base64URL/JSON ===
 function base64UrlToStd(b64url) {
   if (!b64url || typeof b64url !== 'string') return '';
@@ -43,39 +40,30 @@ function decodeBase64UrlToJson(b64url) {
 	return null;
   }
 }
-
-
 export default class Stck_cestaDeComprasScroll extends LightningElement {
-
 	// Estado de la cesta / usuario / totales
 	@track cartItems = [];
 	@track userInfo = {};
 	@track appliedDiscount = null; // { type: 'PERCENTAGE'|'FIXED', value: Decimal }
 	@track promoCode = '';
-
 	// Configuración de tienda
 	@track vatRate = 0;
 	@track subtotal = 0;
 	@track discountAmount = 0;
 	@track taxAmount = 0;
 	@track finalTotal = 0;
-
 	// UI / flujo (carga inicial + acciones)
 	@track isLoading = true;        // legacy (no usar durante pago)
 	@track isStoreOpen = false;
 	@track initialCheckDone = false;
 	@track loadingMessage = 'Comprobando el estado de la tienda...';
-
 	// ✅ Para cuadrar con tu HTML actual:
 	@track isInitializing = true;   // usado por el HTML (spinner inicial)
 	@track isBusy = false;          // overlay para acciones (si lo quieres usar luego)
-
 	// RedSys (debug/inspección)
 	@track redsysParams = null;
-
 	// ---- guard anti-doble envío ----
 	_submitting = false;
-
 	// Ciclo de vida
 	connectedCallback() {
 		try {
@@ -127,12 +115,12 @@ export default class Stck_cestaDeComprasScroll extends LightningElement {
 			this.showToast('Error', 'Se produjo un error inicializando la cesta.', 'error');
 		}
 	}
-
+	// ---- Limpieza ----
 	disconnectedCallback() {
 		// se dispara cuando el componente se desmonta
 		this._submitting = false;
 	}
-
+	// ---- Configuración inicial ----
 	initStore() {
 		checkIfStoreIsOpen()
 			.then(isOpen => {
@@ -152,7 +140,7 @@ export default class Stck_cestaDeComprasScroll extends LightningElement {
 				this.isInitializing = false; 
 			});
 	}
-
+	// ---- Carga de configuración inicial ----
 	loadConfiguration() {
 	getStoreConfiguration()
 		.then(config => {
@@ -171,12 +159,10 @@ export default class Stck_cestaDeComprasScroll extends LightningElement {
 		this.isInitializing = false;
 		});
 	}
-
-
+	
 	get showStoreContent() { return this.initialCheckDone && this.isStoreOpen; }
 	get showClosedMessage() { return this.initialCheckDone && !this.isStoreOpen; }
-
-	// ---- Carrito ----
+	// ---- Agrega al Carrito ----
 	handleAddToCart(event) {
 		const product = event.detail;
 		const existingItem = this.cartItems.find(item => item.id === product.id);
@@ -187,19 +173,17 @@ export default class Stck_cestaDeComprasScroll extends LightningElement {
 		localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
 		this.recalculateTotals();
 	}
-
+	// ---- Actualiza carrito ----
 	handleUpdateCart(event) {
 		this.cartItems = event.detail.items;
 		localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
 		this.recalculateTotals();
 	}
-
-	// ---- Formulario envío ----
+	// ---- Actualiza Formulario envío ----
 	handleFormUpdate(event) {
 		this.userInfo = { ...this.userInfo, ...event.detail.formData };
 		localStorage.setItem('userInfo', JSON.stringify(this.userInfo));
 	}
-
 	// ---- Promociones ----
 	get hasVoucher() { return !!this.appliedDiscount; }
 	get hasPromoApplied() { return !!(this.appliedDiscount && this.appliedDiscount.value > 0); }
@@ -218,7 +202,7 @@ export default class Stck_cestaDeComprasScroll extends LightningElement {
 		}
 		this.showToast('Listo', 'Se borró el voucher. Ahora puedes ingresar uno nuevo.', 'success');
 	}
-
+	// ---- Aplica promción ----
 	handleApplyPromo(event) {
 		const incomingRaw = (event.detail?.promoCode || '').trim();
 		const incoming = incomingRaw.toUpperCase();
@@ -267,54 +251,53 @@ export default class Stck_cestaDeComprasScroll extends LightningElement {
 				this.showToast('Error', msg, 'error');
 			});
 	}
+	// ---- Pago RedSys ----
+	handleFinalSubmit() {
+		if (!this.isFormValid()) return;
+		if (this._submitting) return;
 
- // ---- Pago RedSys ----
-handleFinalSubmit() {
-  if (!this.isFormValid()) return;
-  if (this._submitting) return;
+		// Mantén totales actualizados
+		this.recalculateTotals();
 
-  // Mantén totales actualizados
-  this.recalculateTotals();
+		// Persistencia local (opcional)
+		localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
+		localStorage.setItem('userInfo', JSON.stringify(this.userInfo));
 
-  // Persistencia local (opcional)
-  localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
-  localStorage.setItem('userInfo', JSON.stringify(this.userInfo));
+		const wrapper = this.createRequestWrapper();
 
-  const wrapper = this.createRequestWrapper();
+		createOrderAndGetRedsysParams({ wrapper })
+			.then((params) => {
+				if (!params || !params.redsysUrl) {
+					throw new Error('Parámetros de RedSys vacíos o incompletos.');
+				}
 
-  createOrderAndGetRedsysParams({ wrapper })
-	.then((params) => {
-	  if (!params || !params.redsysUrl) {
-		throw new Error('Parámetros de RedSys vacíos o incompletos.');
-	  }
+				if (params.recoveryToken) {
+					localStorage.setItem('recoveryToken', params.recoveryToken);
+				}
 
-	  if (params.recoveryToken) {
-		localStorage.setItem('recoveryToken', params.recoveryToken);
-	  }
+				this.redsysParams = params;
 
-	  this.redsysParams = params;
+				// (Logs opcionales para diagnóstico)
+				try {
+					// eslint-disable-next-line no-console
+					console.log('Params de RedSys (Apex): ', params);
+				} catch (_e) {}
 
-	  // (Logs opcionales para diagnóstico)
-	  try {
-		// eslint-disable-next-line no-console
-		console.log('Params de RedSys (Apex): ', params);
-	  } catch (_e) {}
-
-	  // Enviar al TPV
-	  requestAnimationFrame(() => {
-		setTimeout(() => this.submitToRedsys(params), 0);
-	  });
-	})
-	.catch((error) => {
-	  this._submitting = false;
-	  const msg =
-		(error && error.body && error.body.message) ||
-		(error && error.message) ||
-		'No se pudo iniciar el proceso de pago.';
-	  this.showToast('Error', msg, 'error');
-	});
-}
-
+				// Enviar al TPV
+				requestAnimationFrame(() => {
+					setTimeout(() => this.submitToRedsys(params), 0);
+					});
+				})
+				.catch((error) => {
+					this._submitting = false;
+					const msg =
+					(error && error.body && error.body.message) ||
+					(error && error.message) ||
+					'No se pudo iniciar el proceso de pago.';
+					this.showToast('Error', msg, 'error');
+				});
+	}
+	// --- Envio de Formulario de pago a RedSys ---
 	async submitToRedsys(params) {
 		if (this._submitting) return;
 		this._submitting = true;
@@ -375,8 +358,6 @@ handleFinalSubmit() {
 			this.showToast('Error', 'No se pudo redirigir a la pasarela de pago: ' + (e && e.message ? e.message : e), 'error');
 		}
 	}
-
-
 	// ---- Totales ----
 	recalculateTotals() {
 		this.subtotal = this.cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -395,7 +376,6 @@ handleFinalSubmit() {
 		this.taxAmount = (baseImponible * this.vatRate) / 100;
 		this.finalTotal = baseImponible + this.taxAmount;
 	}
-
 	// ---- Validaciones ----
 	isFormValid() {
 		if (this.cartItems.length === 0) {
@@ -424,7 +404,6 @@ handleFinalSubmit() {
 		}
 		return true;
 	}
-
 	// ---- Wrapper para Apex ----
 	createRequestWrapper() {
 		return {
@@ -446,7 +425,6 @@ handleFinalSubmit() {
 			finalTotal: this.finalTotal
 		};
 	}
-
 	// ---- Utilidad ----
 	showToast(title, message, variant) {
 		this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
