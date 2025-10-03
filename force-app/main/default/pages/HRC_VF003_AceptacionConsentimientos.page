@@ -1,0 +1,19 @@
+<apex:page controller="ConsentsLeadController" tabstyle="HRC_ConsentsLead__c" showHeader="false" title="Revocación de consentimientos" action="{!updateConsentLead}">
+    <style>
+        .logo {display: block; margin-left: auto; margin-right: auto; background-color: white;}
+        .a {font-size: large; color: black; text-align: center; margin-top: 10px; margin-bottom: 10px;}
+        body {background-color: #FFFFFF; width: 100%;}
+        .footer {display: block; margin-left: auto; margin-right: auto;}
+    </style>
+    <body>
+        <img class="logo" src="https://laliga--uat.sandbox.my.salesforce.com/servlet/servlet.FileDownload?file=0150E00000233d6"/>
+        <div class="a">
+            <br></br>
+            <br></br>
+            <apex:outputText value="{!mensaje}" />
+            <br></br>
+            <br></br>
+        </div>
+        <img class="footer" src="https://laliga--uat.sandbox.my.salesforce.com/servlet/servlet.FileDownload?file=0150E00000233dB"/>
+    </body>
+</apex:page>

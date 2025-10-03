@@ -1,0 +1,25 @@
+<apex:page controller="STCK_VF001_PeticionMaterialController" lightningStylesheets="true">
+    <table>
+        <tr>
+            <td width="83%">
+            </td>
+            <td width="13%">
+                <apex:image alt="laliga monocolor" title="laliga monocolor"
+                            url="{!URLFOR($Resource.STCK_STR001_All, 'images/laliga-h-monocolor-sin-margen-inferior.png')}" width="100%"/>
+            </td>
+            <td width="4%">
+            </td>
+        </tr>
+    </table>
+    <br/>
+    <br/>
+    <apex:form >
+        <apex:pageBlock title="Brief de Producto">
+            <apex:pageBlockSection >
+                <p>
+                    <apex:outputText value="Se ha creado con exito la solicitud de trabajo!"/>
+                </p>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

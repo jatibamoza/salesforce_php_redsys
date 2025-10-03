@@ -1,0 +1,1125 @@
+<apex:page controller="STCK_VF001_PeticionMaterialController" sidebar="false" lightningStylesheets="true" cache="false">
+    
+    <style type="text/css">
+        .required:after {
+            content:" *";
+            color: red;
+        }
+        <!--table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }-->
+        .aviso{
+            color: red;
+        }
+        .avisoFuerte{
+            color: red;
+            font-weight: bold;
+        }
+        .avisoDerecha{
+            color: red;
+            float: right;
+        }
+        .avisoFuerteDerecha{
+            color: red;
+            font-weight: bold;
+            float: right;
+        }
+        img:not(.helpIcon) {
+            transition: transform 1.2s;
+        }
+        img:hover:not(.helpIcon)  {
+            zoom:2;
+        } 
+        .camposBrief{
+            width: 70%;
+            height: 0%;
+            line
+        }
+    </style>
+    <script>
+        function confirmCancel() {
+            var isCancel = confirm("¿Está seguro de que desea cancelar?");
+            if (isCancel) return true;
+            
+            return false;
+        }
+        function confirmSave(numPet) {
+            if(numPet) {
+                let url = '{!$Site.CurrentSiteUrl}'.split('?')[0] + 'STCK_VF002_PeticionMaterialCreated?numPet='+numPet;
+                window.location.href = url;
+            }
+        }
+        function confirmSaveJobRequest() {
+            let url = '{!$Site.CurrentSiteUrl}'.split('?')[0] + 'STCK_VF003_JobRequestCreated';
+            window.location.href = url;
+        }
+    </script>
+<table>
+    <tr>
+        <td width="83%" style="text-align: right; padding-right: 20px; vertical-align: bottom;">
+            <a href="javascript:void(0);" onclick="openPdfModal()" style="font-size: 14px; color: #0070d2; text-decoration: none;">
+                {!$Label.STCK_TextoLinkManual}
+            </a>
+        </td>
+        <td width="13%">
+            <apex:image alt="laliga monocolor" title="laliga monocolor" styleClass="imgHeader"
+                        url="{!URLFOR($Resource.STCK_STR001_All, 'images/laliga-h-monocolor-sin-margen-inferior.png')}" width="100%"/>
+        </td>
+        <td width="4%">
+        </td>
+    </tr>
+</table>
+
+    <!-- Import the Design System style sheet -->
+    <!--<apex:slds />-->
+    <apex:form rendered="{!!accesoPermitido}">
+        <apex:pageBlock title="Acceso denegado">
+            <apex:outputPanel styleClass="rules">
+                Acceso denegado.<br />
+            </apex:outputPanel>
+        </apex:pageBlock>
+    </apex:form>
+    <apex:form >
+        <apex:tabPanel switchType="client" id="theTabPanel" rendered="{!accesoPermitido}">
+            <apex:tab label="{!$Label.STCK_CatalogoProductos}" name="catalogoTab" id="catalogoTab" ontabenter="setModoNormal()">
+                    <table width="100%">
+                        <tr>
+                            <td width="2%"></td>
+                            <td width="53%" valign="middle">
+                                <table>
+                                    <tr>
+                                        <td valign="top">
+                                            Categoría:
+                                            <apex:selectList size="1" id="categoria" value="{!categoriaElegida}">
+                                                <apex:actionSupport event="onchange" action="{!buscarFamilia}"/>
+                                                <apex:selectOptions value="{!categoriaDisponible}"/>
+                                            </apex:selectList>
+                                        </td>
+                                        <td/>
+                                        <td valign="middle">&nbsp;
+                                            <apex:inputText id="search" value="{!searchKey}" label="Input"/>
+                                            <apex:commandButton value="Buscar registros" action="{!search}"/>
+                                       </td>        
+                                    </tr>
+                                </table>
+                            </td>
+                            <td align="right" width="45%">
+                                <!-- For alphabetic search-->
+                                <div>
+                                    <apex:panelGrid >
+                                        <apex:repeat value="{!alphabet}" var="alph">
+                                            <apex:commandLink value="{!alph} | " action="{!getalphaSearch}" reRender="table,categoria,search">
+                                                <apex:param name="a" value="{!alph}" assignTo="{!alphaSearchProdct}"/>
+                                            </apex:commandLink>
+                                        </apex:repeat>
+                                    </apex:panelGrid>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <apex:PageBlock id="table">
+                        
+                        <apex:PageBlockTable id="productList" value="{!ProductoList}" var="productos" >
+                            <apex:column headerValue="Nombre" value="{!productos.Product2.NombreAuxiliar__c}"/>
+                            <apex:column headerValue="Descripción" value="{!productos.Product2.Description}"/>
+                            <apex:column headerValue="Categoría" value="{!productos.Product2.Family}"/>
+                            <apex:column headerValue="Precio" value="{!productos.UnitPrice}"/>
+                            <apex:column headerValue="Imagen" value="{!productos.Product2.Imagen__c}"/>
+                        </apex:PageBlockTable>
+                        
+                        <!-- below code for pagination -->
+                        <div align = "center" id="button">
+                            <!-- To return to first page of records-->
+                            <apex:commandButton action="{!first}" value="<<" title="Primera página" disabled="{!!stdSetController.HasPrevious}" reRender="table,button,productList"/>
+                            <!-- To return to Previous page of records-->
+                            <apex:commandButton action="{!previous}" value="Anterior" disabled="{!!stdSetController.HasPrevious}" reRender="table,button,productList"/>
+                            <!-- To return to next page of records-->
+                            <apex:commandButton action="{!next}" value="Siguiente >" disabled = "{!!stdSetController.HasNext}" reRender="table,button,productList"/>
+                            <!-- To return to last page of records-->
+                            <apex:commandButton action="{!last}" value=">>" title="Última página" disabled="{!!stdSetController.HasNext}" reRender="table,button,productList"/>
+                            <!-- InputText to display current page and to navigate to any page number, At righmost side of page-->
+                            <span style="float:right">
+                                <apex:outputLabel value="Página">
+                                </apex:outputLabel>
+                                <apex:InputText value="{!pageNumber}" maxLength="4" size="1"/>
+                                <!-- To navigate to the page-->           
+                                <apex:outputLabel value="de {!totalPages} de {!numberOfRecords} registros.">
+                                </apex:outputLabel>
+                            </span>
+                            <!-- To display a list for number of records to be selected per page-->
+                            <span style = "float:left">
+                                <apex:SelectList value="{!recordsPerPageslist}" size="1" id="numrecordSelector">
+                                    <apex:selectOptions value="{!RecordsPerPageOptionList}">    
+                                    </apex:selectOptions>
+                                    <apex:actionSupport event="onchange" reRender="table,button"/>
+                                </apex:SelectList>
+                            </span>
+                        </div>
+                    </apex:PageBlock>
+            </apex:tab>
+            <apex:tab label="Solicitudes de material" name="peticionesTab" id="peticionesTab">
+                <apex:outputPanel id="optionsPanel">
+                        <apex:pageBlock >
+                            <table>
+                                <tr>
+                                    <td><apex:inputText value="{!numPet}" id="consulta"/></td>
+                                    <td><apex:commandButton value="Consultar solicitud" action="{! queryButton}"/> </td>
+                                    <td><apex:commandButton value="Crear solicitud" action="{! createButton}"/></td>
+                                    <td>
+                                        <apex:outputText styleclass="aviso" value="{!$Label.STCK_AvisoEntrega}"/>&nbsp;
+                                        <apex:outputText styleclass="avisoFuerte" value="{!$Label.STCK_Aviso_Entrega_2}"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </apex:pageBlock>
+                </apex:outputPanel>
+                    <apex:outputPanel id="queryPanel" rendered="{!queryMode}">
+                        <apex:pageBlock title="Consulta solicitudes de material">
+                           <apex:pageBlockSection columns="1">
+                                <apex:pageBlockTable value="{! peticionConsulta}" var="pc">
+                                    <apex:column value="{! pc.Name }"/>
+                                    <apex:column value="{! pc.Estado__C }"/>
+                                    <apex:column value="{! pc.Direccion__c }"/>
+                                    <apex:column value="{! pc.Area__c }"/>
+                                    <apex:column value="{! pc.PersonaSolicitante__c }"/>
+                                    <apex:column value="{! pc.CorreoElectronico__c }"/>
+                                    <apex:column value="{! pc.NombreEvento__c }"/>
+                                    <apex:column value="{! pc.LugarEvento__c }"/>
+                                    <apex:column value="{! pc.FechaEvento__c }"/>
+                                    <apex:column value="{! pc.FechaTopeEntrega__c }"/>
+                                    <apex:column value="{! pc.LugarEntrega__c }"/>
+                                    <apex:column value="{! pc.CodigoCargo__c }"/>
+                                    <apex:column value="{! pc.Sociedad__c }"/>
+                                    <apex:column value="{! pc.PrecioTotal__c }"/>
+                                </apex:pageBlockTable>                        
+                            </apex:pageBlockSection>
+                            <apex:pageBlockSection title="Líneas de la solicitud">
+                                <!--<apex:variable value="{!1}" id=""var="rowNum"/>-->
+                                <apex:pageBlockTable title="Líneas a la solicitud" value="{!lineaList}" var="ln" id="table" align="left">
+                                    <!--<apex:column headerValue="#" value="{!rowNum}"/>-->
+                                    <apex:column headerValue="Producto" value="{!ln.Producto__r.Name}"/>
+                                    <apex:column headerValue="Cantidad" value="{!ln.Cantidad__c}"/>
+                                    <apex:column headerValue="Precio unidad" value="{!ln.PrecioUnidad__c}"/>
+                                    <apex:column headerValue="Precio línea" value="{!ln.PrecioLinea__c}"/>
+                                    <apex:column headerValue="Estado" value="{!ln.Estado__c}"/>
+                                    <apex:column headerValue="Imagen" value="{!ln.Producto__r.Imagen__c}" style="width:50px"/>
+                                    <!--<apex:variable var="rowNum" value="{!rowNum + 1}"/>-->
+                                </apex:pageBlockTable>
+                            </apex:pageBlockSection>
+                        </apex:pageBlock>
+                    </apex:outputPanel>
+                    <apex:outputPanel id="creationPanel" rendered="{!createMode}">
+                        <apex:pageBlock title="Crear solicitud de material">
+                            <apex:pageBlockButtons location="bottom" html-align="right" id="buttons">
+                                
+                                <!--<apex:commandButton action="{!Save}" value="Guardar"
+                                                    oncomplete="confirmSave('{!numPet}');" rerender="msgId"/>
+                                    <apex:commandButton action="{!cancel}" value="Cancelar" 
+                                                    onclick="confirmCancel()" immediate="true" id="cancel"/>-->
+
+                                <apex:actionstatus id="idActionStatus">
+                                    <apex:facet name="stop">
+                                        <apex:commandbutton action="{!Save}" disabled="false" rerender="idActionStatus,msgId" status="idActionStatus" value="Guardar" oncomplete="confirmSave('{!numPet}');"/>
+                                    </apex:facet>
+                                    <apex:facet name="start">
+                                        <apex:commandbutton disabled="true" status="idActionStatus" value="Guardando..."/>
+                                    </apex:facet>
+                                </apex:actionstatus>
+                                <apex:commandButton action="{!cancel}" value="Cancelar" onclick="confirmCancel()" immediate="true" id="cancel"/>
+                                <apex:pageMessages id="msgId" escape="false"/>
+                            </apex:pageBlockButtons>
+                            <div style="width:50%">
+                                <apex:pageBlockSection id="peticionForm" columns="1">
+                                    <apex:actionRegion renderRegionOnly="false">
+                                        <table style="width:15%">
+                                            <tr>
+                                                <td>
+                                                    <label class="required">Dirección:</label>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="direccionField" value="{! peticion.Direccion__c }">
+                                                        <apex:actionSupport event="onchange" reRender="lineasBlock" />
+                                                    </apex:inputField>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="required">Área:</label>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="areaField" value="{! peticion.Area__c }"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="required">Persona solicitante:</label>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="personaSolicitanteField" value="{! peticion.PersonaSolicitante__c }" label="Persona solicitante">
+                                                        <apex:actionSupport event="onchange" reRender="lineasBlock" />
+                                                    </apex:inputField>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="required">Correo electrónico:</label>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="correoElectronicoField" value="{! peticion.CorreoElectronico__c }">
+                                                        <apex:actionSupport event="onchange" reRender="lineasBlock" />
+                                                    </apex:inputField>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label>Nombre evento:</label>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField value="{! peticion.NombreEvento__c }"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label>Lugar evento:</label>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField value="{! peticion.LugarEvento__c }"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label>Fecha evento:</label>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField value="{! peticion.FechaEvento__c }"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="required">Fecha tope de entrega:</label>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="fechaTopeField" value="{! peticion.FechaTopeEntrega__c }">
+                                                        <apex:actionSupport event="onchange" reRender="lineasBlock" />
+                                                    </apex:inputField>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="padding-left: 0px;
+                                                                       padding-right: 0px;
+                                                                       padding-top: 0px;
+                                                                       padding-bottom: 0px;">
+                                                    <apex:actionRegion renderRegionOnly="false">
+                                                        <table>
+                                                            <tr>
+                                                                <td style="width:50%;">
+                                                                    <label class="required">Lugar de entrega:</label>
+                                                                </td>
+                                                                <td>
+                                                                    <apex:inputField id="lugarEntregaField" value="{!peticion.LugarEntrega__c}">
+                                                                    </apex:inputField>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </apex:actionRegion>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="required">Código de cargo:</label>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="codigoCargoField" value="{! peticion.CodigoCargo__c }">
+                                                        <apex:actionSupport event="onchange" reRender="lineasBlock" />
+                                                    </apex:inputField>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="required">Sociedad:</label>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="sociedadField" value="{! peticion.Sociedad__c }">
+                                                        <apex:actionSupport event="onchange" reRender="lineasBlock" />
+                                                    </apex:inputField>
+                                                </td>
+                                            </tr>    
+                                        </table>
+                                    </apex:actionRegion>
+                                </apex:pageBlockSection>
+                            </div>
+                            <apex:pageBlockSection title="Líneas de la solicitud" id="lineasPeticion" columns="1" >
+                                <apex:panelGrid >
+                                    <apex:pageBlockSectionItem >    
+                                        <apex:commandButton value="Añadir línea" Action="{!AddRow}" rerender="lineasPeticion" immediate="true" id="addbutton"/> 
+                                        <apex:commandButton value="Eliminar línea" Action="{!RemoveRow}" rerender="lineasPeticion" immediate="true" id="rembutton"/>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:variable value="{!1}" var="rowNum"/>
+                                        <apex:pageBlockTable value="{!lineaList}" var="ln" id="table" align="center" columnswidth="50px">
+                                            <apex:column headerValue="#">
+                                                <apex:outputText value="{!FLOOR(rowNum)}"/>
+                                            </apex:column>
+                                            <apex:column headerValue="Producto">
+                                                <apex:inputField value="{!ln.Producto_CG__c}" style="width: 500px" ignoreEditPermissionForRendering="true">
+                                                    <apex:actionSupport event="onchange" reRender="lineasPeticion" action="{!guardarPrecio}">
+                                                        <apex:param name="clickedRow" value="{!rowNum}" assignTo="{!clickedRow}"/>
+                                                    </apex:actionSupport>
+                                                </apex:inputField>
+                                            </apex:column>
+                                            <apex:column headerValue="Cantidad">
+                                                <apex:inputField value="{!ln.Cantidad__c}" style="width: 60px">
+                                                    <apex:actionSupport event="onchange" reRender="lineasPeticion" action="{!recalcularPrecios}">
+                                                        <apex:param name="clickedRow" value="{!rowNum}" assignTo="{!clickedRow}"/>
+                                                        <apex:variable var="rowNum" value="{!rowNum + 1}"/>
+                                                    </apex:actionSupport>
+                                                </apex:inputField>
+                                            </apex:column>
+                                            <apex:column headerValue="Precio unidad">
+                                                <apex:outputField value="{!ln.PrecioUnidad__c}"/>
+                                            </apex:column>
+                                            <apex:column headerValue="Total">
+                                                <apex:outputText id="total" value="{0, number, 0.00}">
+                                                    <apex:param value="{! ln.Cantidad__c * ln.PrecioUnidad__c}"/>
+                                                </apex:outputText>
+                                            </apex:column>
+                                        </apex:pageBlockTable>
+                                    </apex:pageBlockSectionItem>
+                                </apex:panelGrid>
+                            </apex:pageBlockSection>
+                        </apex:pageBlock>
+                    </apex:outputPanel>
+            </apex:tab>
+            <apex:tab label="Novedades" name="novedades" id="novedadesTab" ontabenter="setModoNovedades()">
+                    <table width="100%">
+                        <tr>
+                            <td width="2%"></td>
+                            <td width="53%" valign="middle">
+                                <table>
+                                    <tr>
+                                        <td valign="top">
+                                            Categoría:&nbsp;
+                                            <apex:selectList size="1" id="categoriaN" value="{!categoriaElegidaN}">
+                                                <apex:actionSupport event="onchange" action="{!buscarFamilia}"/>
+                                                <apex:selectOptions value="{!categoriaDisponibleN}"/>
+                                            </apex:selectList>
+                                        </td>
+                                        <td/>
+                                        <td valign="middle">&nbsp;
+                                            <apex:inputText id="searchN" value="{!searchKeyN}" label="Input"/>
+                                            <apex:commandButton value="Buscar registros" action="{!search}"/>
+                                       </td>        
+                                    </tr>
+                                </table>
+                            </td>
+                            <td align="right" width="45%">
+                                <!-- For alphabetic search-->
+                                <div>
+                                    <apex:panelGrid >
+                                        <apex:repeat value="{!alphabet}" var="alph">
+                                            <apex:commandLink value="{!alph} | " action="{!getalphaSearch}" reRender="tableN,categoriaN,searchN">
+                                                <apex:param name="a" value="{!alph}" assignTo="{!alphaSearchProdct}"/>
+                                            </apex:commandLink>
+                                        </apex:repeat>
+                                    </apex:panelGrid>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <apex:PageBlock id="tableN">
+                        
+                        <apex:PageBlockTable id="productListN" value="{!ProductoListN}" var="productosN" >
+                            <apex:column headerValue="Nombre" value="{!productosN.Product2.name}"/>
+                            <apex:column headerValue="Descripción" value="{!productosN.Product2.Description}"/>
+                            <apex:column headerValue="Categoría" value="{!productosN.Product2.Family}"/>
+                            <apex:column headerValue="Precio" value="{!productosN.UnitPrice}"/>
+                            <apex:column headerValue="Imagen" value="{!productosN.Product2.Imagen__c}"/>
+                        </apex:PageBlockTable>
+                        
+                        <!-- below code for pagination -->
+                        <div align = "center" id="buttonN">
+                            <!-- To return to first page of records-->
+                            <apex:commandButton action="{!firstN}" value="<<" title="Primera página" disabled="{!!stdSetControllerN.HasPrevious}" reRender="tableN,buttonN"/>
+                            <!-- To return to Previous page of records-->
+                            <apex:commandButton action="{!previousN}" value="Anterior" disabled="{!!stdSetControllerN.HasPrevious}" reRender="tableN,buttonN"/>
+                            <!-- To return to next page of records-->
+                            <apex:commandButton action="{!nextN}" value="Siguiente >" disabled = "{!!stdSetControllerN.HasNext}" reRender="tableN,buttonN"/>
+                            <!-- To return to last page of records-->
+                            <apex:commandButton action="{!lastN}" value=">>" title="Última página" disabled="{!!stdSetControllerN.HasNext}" reRender="tableN,buttonN"/>
+                            <!-- InputText to display current page and to navigate to any page number, At righmost side of page-->
+                            <span style="float:right">
+                                <apex:outputLabel value="Página">
+                                </apex:outputLabel>
+                                <apex:InputText value="{!pageNumberN}" maxLength="4" size="1"/>
+                                <!-- To navigate to the page-->           
+                                <apex:outputLabel value="de {!totalPagesN} de {!numberOfRecordsN} registros.">
+                                </apex:outputLabel>
+                            </span>
+                            <!-- To display a list for number of records to be selected per page-->
+                            <span style = "float:left">
+                                <apex:SelectList value="{!recordsPerPageslistN}" size="1" id="numrecordSelectorN">
+                                    <apex:selectOptions value="{!RecordsPerPageOptionListN}">    
+                                    </apex:selectOptions>
+                                    <apex:actionSupport event="onchange" reRender="tableN,buttonN"/>
+                                </apex:SelectList>
+                            </span>
+                        </div>
+                    </apex:PageBlock>
+            </apex:tab>
+            <apex:tab label="Consultar Stock" name="consultarStock" id="consultarStockTab" ontabenter="setModoConsultarStock()">
+                <table width="100%">
+                    <tr>
+                        <td width="2%"></td>
+                        <td width="60%" valign="middle">
+                            <table>
+                                <tr>
+                                    <td valign="top">
+                                        Dirección:...&nbsp;
+                                        <apex:selectList size="1" id="direccionCS" value="{!direccionElegidaCS}">
+                                            <apex:actionSupport event="onchange"
+                                            action="{!buscarDireccionCS}"
+                                               reRender="AreaCS,tableCS,buttonCS,searchCS"/>
+                                            <apex:selectOptions value="{!direccionCSDisponible}"/>
+                                        </apex:selectList>
+                                    </td>
+                                    <!--
+                                    <td valign="top">
+                                        Categoría:
+                                        <apex:selectList size="1" id="categoriaCS" value="{!categoriaElegidaCS}">
+                                            <apex:actionSupport event="onchange" action="{!buscarFamiliaCS}"/>
+                                            <apex:selectOptions value="{!categoriaDisponibleCS}"/>
+                                        </apex:selectList>
+                                    </td>
+                                    -->
+                                    <td valign="top">
+                                        Área:&nbsp;
+                                        <apex:selectList size="1" id="AreaCS" value="{!areaElegidaCS}">
+                                            <apex:selectOptions value="{!areaDisponibleCS}"/>
+                                            <apex:actionSupport event="onchange"
+                                            action="{!buscarAreaCS}"
+                                            reRender="tableCS,buttonCS"/>
+                                        </apex:selectList>
+                                    </td>
+                                    
+                                    <td valign="middle">&nbsp;
+                                        <apex:inputText id="searchCS" value="{!searchKeyCS}" label="Input"/>
+                                        <apex:commandButton value="Buscar registros" action="{!searchCS}"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td align="right" width="40%">
+                            <!-- For alphabetic search-->
+                            <div>
+                                <apex:panelGrid >
+                                    <apex:repeat value="{!alphabet}" var="alph">
+                                        <apex:commandLink value="{!alph} | " action="{!getalphaSearchCS}" reRender="tableCS,direccionCS,searchCS">
+                                            <apex:param name="a" value="{!alph}" assignTo="{!alphaSearchProdct}"/>
+                                        </apex:commandLink>
+                                    </apex:repeat>
+                                </apex:panelGrid>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <apex:PageBlock id="tableCS">
+                    
+                    <apex:PageBlockTable id="productListCS" value="{!ProductoListCS}" var="productosCS" >
+                        <apex:column headerValue="Nombre" value="{!productosCS.Producto__r.name}"/>
+                        <apex:column headerValue="Área" value="{!productosCS.Almacen__r.Name}"/>
+                        <apex:column headerValue="Descripción" value="{!productosCS.Producto__r.Description}"/>
+                        <apex:column headerValue="Categoría" value="{!productosCS.Producto__r.Family}"/>
+                        <apex:column headerValue="Cantidad" value="{!productosCS.Cantidad__c}"/>
+                        <apex:column headerValue="Imagen" value="{!productosCS.Imagen__c}"/>
+                    </apex:PageBlockTable>
+                    
+                    <!-- below code for pagination -->
+                    <div align = "center" id="buttonCS">
+                        <!-- To return to first page of records-->
+                        <apex:commandButton action="{!firstCS}" value="<<" title="Primera página" disabled="{!!stdSetControllerCS.HasPrevious}" reRender="tableCS,buttonCS"/>
+                        <!-- To return to Previous page of records-->
+                        <apex:commandButton action="{!previousCS}" value="Anterior" disabled="{!!stdSetControllerCS.HasPrevious}" reRender="tableCS,buttonCS"/>
+                        <!-- To return to next page of records-->
+                        <apex:commandButton action="{!nextCS}" value="Siguiente >" disabled = "{!!stdSetControllerCS.HasNext}" reRender="tableCS,buttonCS"/>
+                        <!-- To return to last page of records-->
+                        <apex:commandButton action="{!lastCS}" value=">>" title="Última página" disabled="{!!stdSetControllerCS.HasNext}" reRender="tableCS,buttonCS"/>
+                        <!-- InputText to display current page and to navigate to any page number, At righmost side of page-->
+                        <span style="float:right">
+                            <apex:outputLabel value="Página">
+                            </apex:outputLabel>
+                            <apex:InputText value="{!pageNumberCS}" maxLength="4" size="1"/>
+                            <!-- To navigate to the page-->           
+                            <apex:outputLabel value="de {!totalPagesCS} de {!numberOfRecordsCS} registros.">
+                            </apex:outputLabel>
+                        </span>
+                        <!-- To display a list for number of records to be selected per page-->
+                        <span style = "float:left">
+                            <apex:SelectList value="{!recordsPerPageslistCS}" size="1" id="numrecordSelectorCS">
+                                <apex:selectOptions value="{!RecordsPerPageOptionListCS}">    
+                                </apex:selectOptions>
+                                <apex:actionSupport event="onchange" reRender="tableCS,buttonCS"/>
+                            </apex:SelectList>
+                        </span>
+                    </div>
+                </apex:PageBlock>
+                <apex:pageBlock title="Crear solicitud de material">
+                    <apex:pageBlockButtons location="bottom" html-align="right" id="buttonsCS">
+                        <apex:actionstatus id="idActionStatus">
+                            <apex:facet name="stop">
+                                <apex:commandbutton action="{!Save}" disabled="false" rerender="idActionStatus,msgIdCS" status="idActionStatus" value="Guardar" oncomplete="confirmSave('{!numPet}');"/>
+                            </apex:facet>
+                            <apex:facet name="start">
+                                <apex:commandbutton disabled="true" status="idActionStatus" value="Guardando..."/>
+                            </apex:facet>
+                        </apex:actionstatus>
+                        <apex:commandButton action="{!cancel}" value="Cancelar" onclick="confirmCancel()" immediate="true" id="cancel"/>
+                        <apex:pageMessages id="msgIdCS" escape="false"/>
+                    </apex:pageBlockButtons>
+                    <apex:outputText styleclass="avisoFuerteDerecha" value="{!$Label.STCK_Aviso_Entrega_2}"/>&nbsp;
+                    <apex:outputText styleclass="avisoDerecha" value="{!$Label.STCK_AvisoEntrega} "/>
+                    <div style="width:50%">
+                        <apex:pageBlockSection id="peticionForm" columns="1">
+                            <apex:actionRegion renderRegionOnly="false">
+                                <table style="width:15%">
+                                    <tr>
+                                        <td>
+                                            <label class="required">Dirección:</label>
+                                        </td>
+                                        <td>
+                                            <apex:inputField id="direccionField" value="{! peticionMS.Direccion__c }" ignoreEditPermissionForRendering="true">
+                                                <apex:actionSupport event="onchange" reRender="lineasMS,lineasPeticionCG" action="{!updateRowsMS}"/>
+                                            </apex:inputField>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="required">Área:</label>
+                                        </td>
+                                        <td>
+                                            <apex:inputField id="areaField" value="{! peticionMS.Area__c }" ignoreEditPermissionForRendering="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="required">Persona solicitante:</label>
+                                        </td>
+                                        <td>
+                                            <apex:inputField id="personaSolicitanteField" value="{! peticionMS.PersonaSolicitante__c }" label="Persona solicitante" ignoreEditPermissionForRendering="true">
+                                                <apex:actionSupport event="onchange" reRender="lineasBlock" />
+                                            </apex:inputField>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="required">Correo electrónico:</label>
+                                        </td>
+                                        <td>
+                                            <apex:inputField id="correoElectronicoField" value="{! peticionMS.CorreoElectronico__c }" ignoreEditPermissionForRendering="true">
+                                                <apex:actionSupport event="onchange" reRender="lineasBlock" />
+                                            </apex:inputField>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label>Nombre evento:</label>
+                                        </td>
+                                        <td>
+                                            <apex:inputField value="{! peticionMS.NombreEvento__c }" ignoreEditPermissionForRendering="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label>Lugar evento:</label>
+                                        </td>
+                                        <td>
+                                            <apex:inputField value="{! peticionMS.LugarEvento__c }" ignoreEditPermissionForRendering="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label>Fecha evento:</label>
+                                        </td>
+                                        <td>
+                                            <apex:inputField value="{! peticionMS.FechaEvento__c }" ignoreEditPermissionForRendering="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="required">Fecha tope de entrega:</label>
+                                        </td>
+                                        <td>
+                                            <apex:inputField id="fechaTopeField" value="{! peticionMS.FechaTopeEntrega__c }" ignoreEditPermissionForRendering="true">
+                                                <apex:actionSupport event="onchange" reRender="lineasBlock" />
+                                            </apex:inputField>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding-left: 0px;
+                                                               padding-right: 0px;
+                                                               padding-top: 0px;
+                                                               padding-bottom: 0px;">
+                                            <apex:actionRegion renderRegionOnly="false">
+                                                <table>
+                                                    <tr>
+                                                        <td style="width:50%;">
+                                                            <label class="required">Lugar de entrega:</label>
+                                                        </td>
+                                                        <td>
+                                                            <apex:inputField id="lugarEntregaField" value="{!peticionMS.LugarEntrega__c}" ignoreEditPermissionForRendering="true">
+                                                            </apex:inputField>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </apex:actionRegion>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="required">Código de cargo:</label>
+                                        </td>
+                                        <td>
+                                            <apex:inputField id="codigoCargoField" value="{! peticionMS.CodigoCargo__c }" ignoreEditPermissionForRendering="true">
+                                                <apex:actionSupport event="onchange" reRender="lineasBlock" />
+                                            </apex:inputField>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="required">Sociedad:</label>
+                                        </td>
+                                        <td>
+                                            <apex:inputField id="sociedadField" value="{! peticionMS.Sociedad__c }" ignoreEditPermissionForRendering="true">
+                                                <apex:actionSupport event="onchange" reRender="lineasBlock" />
+                                            </apex:inputField>
+                                        </td>
+                                    </tr>    
+                                </table>
+                            </apex:actionRegion>
+                        </apex:pageBlockSection>
+                    </div>
+                    <apex:pageBlockSection title="Solicitar material de mi stock" id="lineasMS" columns="1">
+                        <apex:panelGrid >
+                            <apex:pageBlockSectionItem >    
+                                <apex:commandButton value="Añadir línea" Action="{!addRowMS}" rerender="lineasMS,msgIdCS" immediate="true" id="addbuttonMS"/> 
+                                <apex:commandButton value="Eliminar línea" Action="{!RemoveRowMS}" rerender="lineasMS" immediate="true" id="rembuttonMS"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:variable value="{!1}" var="rowNumMS"/>
+                                <apex:pageBlockTable value="{!lineaListMS}" var="lnMS" id="tableMS" align="center" columnswidth="50px">
+                                    <apex:column headerValue="#">
+                                        <apex:outputText value="{!FLOOR(rowNumMS)}"/>
+                                    </apex:column>
+                                    <apex:column headerValue="Producto">
+                                        <apex:inputField value="{!lnMS.ProductoMiStock__c}" style="width:300px"  ignoreEditPermissionForRendering="true">
+                                            <apex:actionSupport event="onchange" reRender="lineasMS, msgIdCS" action="{!recalcularMS}">
+                                                <apex:param name="clickedRowMS" value="{!rowNumMS}" assignTo="{!clickedRowMS}"/>
+                                            </apex:actionSupport>
+                                        </apex:inputField>
+                                    </apex:column>
+                                    <apex:column headerValue="Cantidad total">
+                                        <apex:outputfield value="{!lnMS.CantidadTemporal__c}" style="width: 60px"/>
+                                    </apex:column>
+                                    <apex:column headerValue="Cantidad">
+                                        <apex:inputField value="{!lnMS.Cantidad__c}" style="width: 60px" ignoreEditPermissionForRendering="true">
+                                            <apex:actionSupport event="onchange" reRender="lineasMS" action="{!recalcularMS}">
+                                                <apex:param name="clickedRowMS" value="{!rowNumMS}" assignTo="{!clickedRowMS}"/>
+                                                <apex:variable var="rowNumMS" value="{!rowNumMS + 1}"/>
+                                            </apex:actionSupport>
+                                        </apex:inputField>
+                                    </apex:column>
+                                </apex:pageBlockTable>
+                            </apex:pageBlockSectionItem>
+                        </apex:panelGrid>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection title="Solicitar productos del catálogo general" id="lineasPeticionCG" columns="1">
+                        <apex:panelGrid >
+                            <apex:pageBlockSectionItem >    
+                                <apex:commandButton value="Añadir línea" Action="{!AddRow}" rerender="lineasPeticionCG" immediate="true" id="addbuttonCG"/> 
+                                <apex:commandButton value="Eliminar línea" Action="{!RemoveRow}" rerender="lineasPeticionCG" immediate="true" id="rembuttonCG"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:variable value="{!1}" var="rowNumCG"/>
+                                <apex:pageBlockTable value="{!lineaListCG}" var="lnCG" id="tableCG" align="center" columnswidth="50px">
+                                    <apex:column headerValue="#">
+                                        <apex:outputText value="{!FLOOR(rowNumCG)}"/>
+                                    </apex:column>
+                                    <apex:column headerValue="Producto">
+                                        <apex:inputField value="{!lnCG.Producto_CG__c}" style="width: 500px" ignoreEditPermissionForRendering="true">
+                                            <apex:actionSupport event="onchange" reRender="lineasPeticionCG" action="{!guardarPrecio}">
+                                                <apex:param name="clickedRowCG" value="{!rowNumCG}" assignTo="{!clickedRowCG}"/>
+                                            </apex:actionSupport>
+                                        </apex:inputField>
+                                    </apex:column>
+                                    <apex:column headerValue="Cantidad">
+                                        <apex:inputField value="{!lnCG.Cantidad__c}" style="width: 60px">
+                                            <apex:actionSupport event="onchange" reRender="lineasPeticionCG" action="{!recalcularPrecios}">
+                                                <apex:param name="clickedRowCG" value="{!rowNumCG}" assignTo="{!clickedRowCG}"/>
+                                                <apex:variable var="rowNumCG" value="{!rowNumCG + 1}"/>
+                                            </apex:actionSupport>
+                                        </apex:inputField>
+                                    </apex:column>
+                                    <apex:column headerValue="Precio unidad">
+                                        <apex:outputField value="{!lnCG.PrecioUnidad__c}"/>
+                                    </apex:column>                               
+                                    <apex:column headerValue="Precio línea">
+                                        <apex:outputField value="{!lnCG.PrecioLinea__c}"/>
+                                    </apex:column>
+                                </apex:pageBlockTable>
+                            </apex:pageBlockSectionItem>
+                        </apex:panelGrid>
+                    </apex:pageBlockSection>
+                    
+                </apex:pageBlock>
+            </apex:tab>
+            
+            <!-- LOGISTICA -->
+            <apex:tab label="{!$Label.STCK_SolicitudesLogisticasUpper}" name="peticionesSLTab" id="peticionesSLTab">
+                <apex:pageBlock title="Crear solicitud logística">
+                    <apex:pageBlockButtons location="bottom" html-align="right" id="buttonsSL">
+                        <apex:actionstatus id="idActionStatusSL">
+                            <apex:facet name="stop">
+                                <apex:commandbutton action="{!SaveSL}" disabled="false" rerender="idActionStatusSL,msgSLId" status="idActionStatusSL" value="Guardar" oncomplete="confirmSave('{!numPet}');"/>
+                            </apex:facet>
+                            <apex:facet name="start">
+                                <apex:commandbutton disabled="true" status="idActionStatusSL" value="Guardando..."/>
+                            </apex:facet>
+                        </apex:actionstatus>
+                        <apex:commandButton action="{!cancel}" value="Cancelar" onclick="confirmCancel()" immediate="true" id="cancelSL"/>
+                        <apex:pageMessages id="msgSLId" escape="false"/>
+                    </apex:pageBlockButtons>
+                    <div>
+                        <apex:pageBlockSection title="Información del solicitante" id="solicitanteInfoSL" columns="2">
+                            <table>
+                                <tr>
+                                    <td>
+                                        <label class="required">Dirección:</label>
+                                    </td>
+                                    <td>
+                                        <apex:inputField id="direccionSLField" label="" value="{! peticionSL.Direccion__c }"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label class="required">Área:</label>
+                                    </td>
+                                    <td>
+                                        <apex:inputField label="" value="{! peticionSL.Area__c }"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label class="required">Persona solicitante:</label>
+                                    </td>
+                                    <td>
+                                        <apex:inputField label="" value="{! peticionSL.PersonaSolicitante__c }"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label class="required">Correo electrónico:</label>
+                                    </td>
+                                    <td>
+                                        <apex:inputField label="" value="{! peticionSL.CorreoElectronico__c }"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label class="required">Teléfono:</label>
+                                    </td>
+                                    <td>
+                                        <apex:inputField label="" value="{! peticionSL.Telefono__c }"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </apex:pageBlockSection>
+                        <div class="avisoFuerte" align="right">Las solicitudes se deben realizar con al menos 5 días hábiles de antelación.</div>
+                        <apex:pageBlockSection title="{!$Label.STCK_InformacionSolicitud}" id="trabajoInfoSL" columns="2">
+                            <table>
+                               <tr>
+                                    <td>
+                                        <label class="required">Fecha de entrega:</label>
+                                    </td>
+                                    <td>
+                                        <apex:inputField label="" value="{! peticionSL.FechaEntrega__c }"/>
+                                    </td>
+                                </tr>
+                               <tr>
+                                    <td>
+                                        <label class="required">Fecha de previsión de salida:</label>
+                                    </td>
+                                    <td>
+                                        <apex:inputField label="" value="{! peticionSL.FechaPrevistaSalida__c }"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label class="required">Concepto:</label>
+                                    </td>
+                                    <td>
+                                        <apex:inputField label="" value="{! peticionSL.Concepto__c }"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label>Descripción:</label>
+                                    </td>
+                                    <td>
+                                        <apex:inputField label="" value="{! peticionSL.Descripcion__c }" ignoreEditPermissionForRendering="true"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </apex:pageBlockSection>
+                    </div>
+                </apex:pageBlock>
+            </apex:tab>
+            <!--<apex:tab label="Brief de Producto" name="jobReqTab" id="jobReqTab">
+                <apex:pageBlock title="Crear solicitud de trabajo">
+
+                            <apex:pageBlockButtons location="bottom" html-align="right" id="buttons">
+                                <apex:actionstatus id="idActionStatus">
+                                    <apex:facet name="stop">
+                                        <apex:commandbutton action="{!saveJobReq}" disabled="false" rerender="idActionStatus,msgIdBP" status="idActionStatus" value="Guardar" oncomplete="confirmSaveJobRequest();"/>
+                                    </apex:facet>
+                                    <apex:facet name="start">
+                                        <apex:commandbutton disabled="true" status="idActionStatus" value="Guardando..."/>
+                                    </apex:facet>
+                                </apex:actionstatus>
+                                <apex:commandButton action="{!cancelJobReq}" value="Cancelar" onclick="confirmCancel()" immediate="true" id="cancel"/>
+                                <apex:pageMessages id="msgIdBP" escape="false"/>
+                            </apex:pageBlockButtons>
+
+                            <div style="width:50%">
+                                <apex:pageBlockSection id="jobReqForm" columns="1">
+                                    <apex:actionRegion renderRegionOnly="false">
+                                        <table style="width:15%">
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required" >Para qué se requiere el producto:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" style="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.ProductObjective__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="ProductObjective__c" value="{! solicitudTrabajo.ProductObjective__c }" styleClass="camposBrief"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required">Objetivos:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.ParticularObjectives__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="ParticularObjectives__c" value="{! solicitudTrabajo.ParticularObjectives__c }" styleClass="camposBrief"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required">Público Objetivo:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.Target__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="Target__c" value="{! solicitudTrabajo.Target__c }" styleClass="camposBrief"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required">Antecedentes y Contexto:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.BackgroundAndContext__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="BackgroundAndContext__c" value="{! solicitudTrabajo.BackgroundAndContext__c }" styleClass="camposBrief"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required">Conceptos Estratégicos Deseados:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.StrategicConcepts__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField value="{! solicitudTrabajo.StrategicConcepts__c }" styleClass="camposBrief"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required">Ideas de Producto:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.ProductIdeas__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField value="{! solicitudTrabajo.ProductIdeas__c }" styleClass="camposBrief"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required">Requerimientos Específicos:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.SpecificRequirements__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField value="{! solicitudTrabajo.SpecificRequirements__c }" styleClass="camposBrief"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required">Presupuesto:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.Budget__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="Budget__c" value="{! solicitudTrabajo.Budget__c }"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required">Unidades a producir:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.UnitsToProduce__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="UnitsToProduce__c" value="{! solicitudTrabajo.UnitsToProduce__c }"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required">Plazo:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.TermDate__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="TermDate__c" value="{! solicitudTrabajo.TermDate__c }"/>
+                                                </td>
+                                            </tr>  
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;">Punto de entrega:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.DeliveryPoint__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="DeliveryPoint__c" value="{! solicitudTrabajo.DeliveryPoint__c }" styleClass="camposBrief"/>
+                                                </td>
+                                            </tr> 
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required">Nombre y apellidos de receptor:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.PersonRecipientName__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="PersonRecipientName__c" value="{! solicitudTrabajo.PersonRecipientName__c }" styleClass="camposBrief"/>
+                                                </td>
+                                            </tr> 
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required">Número móvil persona receptora:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.PersonMobile__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="PersonMobile__c" value="{! solicitudTrabajo.PersonMobile__c }"/>
+                                                </td>
+                                            </tr> 
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;" class="required">Correo Electrónico persona receptora:</label>
+                                                    <img src="/s.gif" alt="Help" class="helpIcon" styleClass="helpIcon" title="{!$ObjectType.STCK_JobRequest__c.Fields.PersonEmail__c.inlineHelpText}"/>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="PersonEmail__c" value="{! solicitudTrabajo.PersonEmail__c }"/>
+                                                </td>
+                                            </tr>   
+                                            <tr>
+                                                <td>
+                                                    <label style="font-weight:bold;">Observaciones:</label>
+                                                </td>
+                                                <td>
+                                                    <apex:inputField id="Observations__c" value="{! solicitudTrabajo.Observations__c }" styleClass="camposBrief"/>
+                                                </td>
+                                            </tr> 
+                                        </table>
+                                    </apex:actionRegion>
+                                </apex:pageBlockSection>
+                            </div>
+                        </apex:pageBlock>
+            </apex:tab>-->
+        </apex:tabPanel>
+        <apex:actionFunction action="{!setModoNormal}" name="setModoNormal" rerender="table,productList,categoriaN"/>
+        <apex:actionFunction action="{!setModoNovedades}" name="setModoNovedades" rerender="tableN,productListN,categoria"/>
+        <apex:actionFunction action="{!setModoConsultarStock}" name="setModoConsultarStock" rerender="tableCS,productListCS,lineasMS,tableMS"/>
+
+<apex:outputPanel layout="block" id="modalContainer">
+
+    <style>
+        /* Estilos generales del modal y fondo */
+        .modal-backdrop { display: none; position: fixed; z-index: 1040; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); }
+        .pdf-modal { display: none; position: fixed; z-index: 1050; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 90%; background-color: #fff; border-radius: 8px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); flex-direction: column; }
+        .pdf-modal-header { padding: 15px; border-bottom: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: center; }
+        .pdf-modal-title { margin: 0; font-size: 1.25rem; font-family: 'Salesforce Sans', Arial, sans-serif; }
+        .pdf-modal-close { font-size: 1.5rem; font-weight: bold; line-height: 1; color: #000; opacity: 0.3; cursor: pointer; border: none; background: transparent; }
+        .pdf-modal-close:hover { opacity: 0.75; }
+        .pdf-modal-body { position: relative; flex: 1 1 auto; padding: 20px; overflow-y: auto; }
+        
+        /* Estilos para el aviso de confidencialidad */
+        .confidentiality-notice { text-align: left; font-family: 'Salesforce Sans', Arial, sans-serif; font-size: 14px; white-space: pre-wrap; }
+        .confidentiality-notice h4 { font-size: 16px; font-weight: bold; }
+        .accept-button { display: block; margin: 20px auto 0 auto; padding: 10px 25px; font-size: 16px; font-weight: bold; color: #fff; background-color: #0070d2; border: 1px solid #0070d2; border-radius: 4px; cursor: pointer; }
+        .accept-button:hover { background-color: #005fb2; }
+
+        /* Iframe oculto por defecto */
+        .pdf-modal-body iframe { display: none; width: 100%; height: 100%; border: none; padding: 0; margin: 0; position: absolute; top: 0; left: 0; }
+    </style>
+
+    <div id="modalBackdrop" class="modal-backdrop"></div>
+    <div id="pdfModal" class="pdf-modal">
+        <div class="pdf-modal-header">
+            <h3 id="modalTitle" class="pdf-modal-title">Aviso de Confidencialidad</h3>
+            <button type="button" class="pdf-modal-close" onclick="closePdfModal()">X</button>
+        </div>
+        <div class="pdf-modal-body">
+            <div id="confidentialityNotice" class="confidentiality-notice">
+                <h4>Aviso de confidencialidad y uso responsable</h4>
+                <p>{!$Label.STCK_AvisoConfidencialidad}</p>
+                <button type="button" class="accept-button" onclick="acceptNotice()">Aceptar</button>
+            </div>
+            <iframe id="pdfIframe" src="about:blank" title="Visor de Manual Técnico"></iframe>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+    //<![CDATA[
+        document.addEventListener('DOMContentLoaded', function() {
+            var modal = document.getElementById('pdfModal');
+            var backdrop = document.getElementById('modalBackdrop');
+            var iframe = document.getElementById('pdfIframe');
+            var notice = document.getElementById('confidentialityNotice');
+            var modalTitle = document.getElementById('modalTitle');
+            var pdfUrl = "{!$Label.STCK_ManualIdentidad_URL}"; 
+
+            document.addEventListener('contextmenu', function(event) {
+                // Bloquea el clic derecho solo si el modal está abierto
+                if (modal.style.display === 'flex') {
+                    event.preventDefault();
+                }
+            });
+
+            window.openPdfModal = function() {
+                modalTitle.textContent = 'Aviso de Confidencialidad';
+                notice.style.display = 'block';
+                iframe.style.display = 'none';
+                iframe.src = 'about:blank';
+                modal.style.display = 'flex';
+                backdrop.style.display = 'block';
+            }
+
+            window.acceptNotice = function() {
+                modalTitle.textContent = '{!JSENCODE($Label.STCK_TextoLinkManual)}';
+                notice.style.display = 'none';
+                iframe.style.display = 'block';
+                iframe.src = pdfUrl;
+            }
+
+            window.closePdfModal = function() {
+                modal.style.display = 'none';
+                backdrop.style.display = 'none';
+                iframe.src = 'about:blank';
+            }
+            backdrop.addEventListener('click', window.closePdfModal);
+        });
+    //]]>
+    </script>
+
+</apex:outputPanel>
+
+    </apex:form>
+</apex:page>

@@ -1,0 +1,44 @@
+<template>
+    <input type="hidden" name="wire_call" value={caseAccId} />
+    <input type="hidden" name="wire_call" value={optyAccId} />
+    <template if:true={accountName}>
+        <lightning-card title="Insights" icon-name="standard:solution" class="my-card slds-card_boundary">
+            <br />
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col cell-box">
+                    <div class="slds-text-heading_large blue-text-header">{accountMinutos} {label.TIME_UNIT}</div>
+                </div>
+                <div class="slds-col cell-box">
+                    <div class="slds-text-heading_large blue-text-header">{accountGastofututo} {label.CURRENCY}</div>
+                </div>
+            </div>
+            <br />
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col cell-box">
+                    <img src={iconoSmartTV} height="50%" width="50%"/>
+                    <div class="slds-text-heading_large blue-text">{accountConsumoSmartTV}%</div>
+                    <div class="slds-text-heading_medium grey-text">{accountFechaSmartTV}</div>
+                    <div class="slds-text-heading_medium grey-text">{accountVersionSmartTV}</div>
+                </div>
+                <div class="slds-col cell-box">
+                    <img src={iconoOrdenador} height="50%" width="50%"/>
+                    <div class="slds-text-heading_large blue-text">{accountConsumoOrdenador}%</div>
+                    <div class="slds-text-heading_medium grey-text">{accountFechaOrdenador}</div>
+                    <div class="slds-text-heading_medium grey-text">{accountVersionOrdenador}</div>
+                </div>
+                <div class="slds-col cell-box">
+                    <img src={iconoSmartPhone} height="50%" width="50%"/>
+                    <div class="slds-text-heading_large blue-text">{accountConsumoSmartPhone}%</div>
+                    <div class="slds-text-heading_medium grey-text">{accountFechaSmartPhone}</div>
+                    <div class="slds-text-heading_medium grey-text">{accountVersionSmartPhone}</div>
+                </div>
+                <div class="slds-col cell-box">
+                    <img src={iconoTablet} height="50%" width="50%"/>
+                    <div class="slds-text-heading_large blue-text">{accountConsumoTableta}%</div>
+                    <div class="slds-text-heading_medium grey-text">{accountFechaTableta}</div>
+                    <div class="slds-text-heading_medium grey-text">{accountVersionTableta}</div>
+                </div>
+            </div>
+        </lightning-card>
+    </template>
+</template>

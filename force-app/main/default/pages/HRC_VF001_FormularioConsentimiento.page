@@ -1,0 +1,103 @@
+<apex:page showHeader="false" sidebar="false" lightningStylesheets="true" >
+
+<style>
+ .required:after {
+    content:" *";
+    color: red;
+  }   
+
+</style>
+<H1 align="center">Gestión de consentimientos</H1>
+
+<form action="https://laliga--uat.sandbox.my.salesforce.com/servlet/servlet.WebToCase?encoding=UTF-8" method="POST">
+
+    <input type="hidden" name="orgid" value="00D0E0000002GxQ"/>
+    <input type="hidden" name="retURL" value="https://laliga--uat--c.sandbox.vf.force.com/apex/HRC_VF002_Gracias"/>
+    
+    <input type="hidden" name="origin" id="origin" value="Formulario GDPR"/>
+    
+ <div align="left" style="margin-left:20px;">
+    <label class="required" for="name" style="color: #032d5f; font-size: 13px">Nombre:</label>
+    <input  id="name" maxlength="80" name="name" size="20" type="text" style="margin-left:58px"/><br/><br/>
+
+    <label for="lastname" style="color: #032d5f; font-size: 13px">Apellido:</label>
+    <input  id="00N0E00000IZBhe" maxlength="80" name="00N0E00000IZBhe" size="20" type="text" style="margin-left:67px"/><br/><br/>
+
+    <label class="required" for="email" style="color: #032d5f; font-size: 13px">Correo electrónico:</label>
+    <input  id="email" maxlength="80" name="email" size="20" type="text" required="true" style="margin-left:-1px"/><br/><br/>
+     
+    <label for="phone" style="color: #032d5f; font-size: 13px">Teléfono:</label>
+    <input  id="phone" maxlength="40" name="phone" size="20" type="text" style="margin-left:65px"/><br/><br/>
+    
+    <label for="idbussiness" style="color: #032d5f; font-size: 13px">Id Business:</label>
+    <input  id="00N0E00000GEWvC" maxlength="18" name="00N0E00000GEWvC" size="20" type="text" style="margin-left:50px"/><br/><br/>
+    
+    <label class="required" for="coffvv" style="color: #032d5f; font-size: 13px">CoFFVV:</label>
+    <input  id="00N0E00000IZBhW" maxlength="255" name="00N0E00000IZBhW" size="20" type="text" required="true" style="margin-left:60px"/><br/><br/>
+    
+    <label class="required" for="colead" style="color: #032d5f; font-size: 13px">CoLead:</label>
+    <input  id="00N0E00000IZBhX" maxlength="255" name="00N0E00000IZBhX" size="20" type="text" required="true" style="margin-left:60px"/><br/><br/>
+     
+    <label class="required" for="rol" style="color: #032d5f; font-size: 13px">Rol:</label>
+    <select  id="00N0E00000GFPFV" name="00N0E00000GFPFV" title="Rol" style="margin-left:85px" required="true">
+    <option value="Propietario">Propietario</option>
+    <option value="Gestor">Gestor</option>
+    <option value="Responsable">Responsable</option>
+    </select><br/><br/>
+    
+    <label class="required" for="captadopor" style="color: #032d5f; font-size: 13px">Captado por:</label>
+    <select  id="00N0E00000IZBhV" name="00N0E00000IZBhV" title="Captado por" style="margin-left:30px">
+    <option value="Mahou">+Bar Sport TV</option>
+    <option value="LaLiga">LALIGA</option>
+    </select><br/><br/>
+ </div>
+    
+    <apex:pageBlock >
+        <u>Información básica sobre protección de datos de LALIGA</u><br/><br/>
+        
+        <b>El responsable de sus datos es</b> LaLiga Group International, S.L. (“LALIGA”), con CIF B-05421805 y domicilio en Calle Torrelaguna 60, 28043, Madrid.<br/><br/> 
+        <b>¿Para qué utilizaremos sus datos?</b> Si nos das su consentimiento, trataremos sus datos identificativos y de contacto profesional para:<br/> 
+        /   Comunicar tus datos a la operadora de telecomunicaciones que haya elegido para que pueda enviarte una oferta comercial para la contratación de LALIGA BARES.<br/>
+        /   Enviarte comunicaciones comerciales de LALIGA sobre productos, servicios, ofertas, promociones y novedades relacionadas con LALIGA BARES.<br/>
+        /   Enviarte comunicaciones comerciales por parte de LALIGA sobre sus productos y servicios y sobre aquellos promocionados conjuntamente por LALIGA y sus patrocinadores oficiales, federaciones nacionales o cadenas de televisión nacionales e internacionales. Estas comunicaciones se segmentarán en función de los datos que proporciones directamente en base al interés legítimo que tiene LALIGA en lograr un mayor interés y retorno de dichas comunicaciones (campañas de comunicación).<br/>
+        <br/>
+        En este sentido, te informamos que, para llevar a cabo las finalidades anteriormente mencionadas, tus datos personales serán transferidos fuera del espacio económico europeo a países que no garantizan un nivel equivalente de protección al de la Unión Europea.<br/><br/>
+        
+        <b>¿Cuáles son mis derechos?</b> Puede ejercer sus derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y portabilidad enviando un correo electrónico a <apex:outputLink value="mailto:lopd@laliga.es"> lopd@laliga.es</apex:outputLink>.<br/>
+        En cualquier momento, puedes consultar nuestra <apex:outputLink value="https://assets.laliga.com/assets/2023/07/13/originals/03f5d28702eb325c4275bd4d49ce4354.pdf"> Política de Privacidad</apex:outputLink> para obtener más información sobre sus derechos y el tratamiento de sus datos. <br/><br/>
+        Autorizo a LALIGA a comunicar mis datos identificativos y de contacto profesional a las siguientes operadoras de telecomunicaciones para que me envíen una oferta comercial para la contratación de LALIGA BARES: <br/>
+        <apex:pageBlockSection columns="1">
+            <apex:pageBlockSectionItem >
+                    <input  id="00N0E00000IZBhT" name="00N0E00000IZBhT" type="checkbox" value="1"/>AgileTV<br/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                    <input  id="00N0E00000IZBhU" name="00N0E00000IZBhU" type="checkbox" value="1"/>Avatel<br/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                    <input  id="00N0E00000IZBhf" name="00N0E00000IZBhf" type="checkbox" value="1"/>BarTV<br/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                    <input  id="00N0E00000IZBhb" name="00N0E00000IZBhb" type="checkbox" value="1"/>Movistar<br/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                    <input  id="00N0E00000IZBhd" name="00N0E00000IZBhd" type="checkbox" value="1"/>Orange<br/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                    <input  id="00N0E00000IZBhZ" name="00N0E00000IZBhZ" type="checkbox" value="1"/>+Bar Sport TV<br/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                    <input  id="00N0E000007i1vq" name="00N0E000007i1vq" type="checkbox" value="1"/>Quiero que LALIGA me envíe comunicaciones comerciales relacionadas con productos, servicios, ofertas, promociones y novedades de LALIGA BARES, por cualquier medio, incluidos los electrónicos.<br/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                    <input  id="00N0E00000GEWvA" name="00N0E00000GEWvA" type="checkbox" value="1"/>Quiero que LALIGA me envíe comunicaciones comerciales relacionadas con las actividades, productos y servicios de LALIGA, y de aquellos promocionados conjuntamente por esta con sus patrocinadores oficiales, federaciones nacionales o cadenas de televisión nacionales e internacionales, por cualquier medio, incluidos los electrónicos.<br/>
+            </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+        
+
+    </apex:pageBlock>
+
+    <input type="submit" name="submit"/>
+
+</form>  
+  
+</apex:page>

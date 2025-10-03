@@ -1,0 +1,65 @@
+<template>
+    <lightning-card title="Pago confirmado">
+        <div class="slds-p-around_medium">
+            <!-- Cargando -->
+            <template if:true={isLoading}>
+                <div class="slds-is-relative slds-p-vertical_large">
+                    <lightning-spinner alternative-text="Cargando..." size="medium"></lightning-spinner>
+                    <p class="slds-text-align_center slds-m-top_medium">{loadingMessage}</p>
+                </div>
+            </template>
+
+            <!-- Exitoso -->
+            <template if:true={loadedOk}>
+                <div class="slds-box slds-theme_success slds-m-bottom_medium">
+                    <div class="slds-grid slds-grid_vertical-align-center">
+                        <lightning-icon icon-name="utility:success" variant="success" size="small" class="slds-m-right_small"></lightning-icon>
+                        <div>
+                            <p class="slds-text-heading_small slds-m-bottom_x-small">
+                                ¡Pago realizado con éxito!
+                            </p>
+                            <p>Gracias por tu compra.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <template if:true={orderFound}>
+                    <div class="slds-m-bottom_medium">
+                        <p class="slds-text-title_caps slds-m-bottom_x-small">Detalle de la solicitud</p>
+                        <p class="slds-m-bottom_x-small">
+                            Solicitud (Name): <strong>{nombreSolicitud}</strong>
+                        </p>
+                        <p class="slds-m-bottom_x-small">
+                            Nº de pedido (Redsys): <strong>{orderNumber}</strong>
+                        </p>
+                    </div>
+                </template>
+
+                <div class="slds-m-top_medium">
+                    <lightning-button label="Volver a la tienda" variant="brand" onclick={goToStore}></lightning-button>
+                </div>
+            </template>
+
+            <!-- Error / No encontrado -->
+            <template if:true={hasError}>
+                <div class="slds-box slds-theme_warning">
+                    <div class="slds-grid slds-grid_vertical-align-center">
+                        <lightning-icon icon-name="utility:warning" size="small" class="slds-m-right_small"></lightning-icon>
+                        <div>
+                            <p class="slds-text-heading_small slds-m-bottom_x-small">
+                                No pudimos recuperar los datos de tu pedido.
+                            </p>
+                            <p>
+                                Si ya realizaste el pago, recibirás un email con los detalles.
+                                También puedes contactar con soporte indicando tu correo.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="slds-m-top_medium">
+                        <lightning-button label="Volver a la tienda" onclick={goToStore}></lightning-button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

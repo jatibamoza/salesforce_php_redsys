@@ -1,0 +1,103 @@
+<!-- stck_formularioPago.html -->
+<template>
+    <lightning-card title="Confirmar y Pagar" icon-name="utility:check">
+        <div class="slds-p-horizontal_medium slds-p-vertical_small">
+
+            <!-- Bloque de voucher -->
+            <div class="slds-grid slds-gutters slds-m-bottom_medium">
+                <div class="slds-col slds-size_2-of-3">
+                    <lightning-input
+                        label="Código Promocional (Opcional)"
+                        value={promoInput}
+                        onchange={handlePromoChange}
+                        disabled={isPromoApplied}
+                        message-when-bad-input="Código no válido">
+                    </lightning-input>
+
+                    <template if:true={isPromoApplied}>
+                        <div class="slds-m-top_x-small slds-grid slds-gutters">
+                            <div class="slds-col">
+                                <lightning-pill
+                                    label={promoCode}
+                                    name="appliedVoucher"
+                                    variant="plain">
+                                </lightning-pill>
+                                <div class="slds-text-color_success slds-m-top_x-small">
+                                    Voucher aplicado. Para usar otro, bórralo primero.
+                                </div>
+                            </div>
+                            <div class="slds-col slds-align-bottom">
+                                <lightning-button
+                                    label="Borrar voucher"
+                                    variant="destructive-text"
+                                    onclick={handleClearPromo}>
+                                </lightning-button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="slds-col slds-size_1-of-3 slds-align-bottom">
+                    <lightning-button
+                        label="Aplicar"
+                        onclick={handleApplyPromo}
+                        class="slds-m-bottom_small"
+                        disabled={isApplyDisabled}>
+                    </lightning-button>
+                </div>
+            </div>
+
+            <img src={redsysLogoUrl} alt="Pago Seguro con Redsys y Tarjetas" class="payment-banner-logo"/>
+
+            <div class="slds-m-top_large">
+                <h3 class="slds-text-heading_small">Proceso de Pago</h3>
+                <p class="slds-text-body_small slds-m-bottom_small">
+                    Serás redirigido a la plataforma de pago seguro para completar tu transacción.
+                </p>
+                <div class="redsys-placeholder">
+                    <p class="slds-text-align_center slds-p-around_medium">
+                        <lightning-icon icon-name="utility:lock" size="medium"></lightning-icon><br/>
+                        Área de Integración de RedSys
+                    </p>
+                </div>
+            </div>
+
+            <div class="slds-m-top_large price-breakdown">
+                <div class="slds-grid slds-grid_vertical">
+                    <div class="slds-col slds-grid">
+                        <span>Subtotal Productos</span>
+                        <span class="slds-col_bump-left">
+                            <lightning-formatted-number value={subtotal} format-style="currency" currency-code="EUR"></lightning-formatted-number>
+                        </span>
+                    </div>
+                    <div class="slds-col slds-grid">
+                        <span>Descuento</span>
+                        <span class="slds-col_bump-left">
+                            - <lightning-formatted-number value={discountAmount} format-style="currency" currency-code="EUR"></lightning-formatted-number>
+                        </span>
+                    </div>
+                    <div class="slds-col slds-grid">
+                        <span>IVA ({vatRate}%)</span>
+                        <span class="slds-col_bump-left">
+                            <lightning-formatted-number value={taxAmount} format-style="currency" currency-code="EUR"></lightning-formatted-number>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slds-m-top_medium slds-text-align_right">
+                <div class="slds-text-heading_large slds-m-bottom_medium total-line">
+                    Total a Pagar:
+                    <lightning-formatted-number value={totalAmount} format-style="currency" currency-code="EUR"></lightning-formatted-number>
+                </div>
+                <lightning-button
+                    label="Finalizar y Pagar"
+                    variant="brand"
+                    icon-name="utility:lock"
+                    onclick={handleSubmit}>
+                </lightning-button>
+            </div>
+
+        </div>
+    </lightning-card>
+</template>

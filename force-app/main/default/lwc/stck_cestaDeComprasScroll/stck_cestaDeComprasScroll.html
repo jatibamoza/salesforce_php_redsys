@@ -1,0 +1,89 @@
+<template>
+  <div class="background">
+    <lightning-card title="Tienda de Empleados">
+      <div class="slds-m-around_medium">
+
+        <!-- SOLO para carga inicial (antes de saber si abre la tienda) -->
+        <template lwc:if={isInitializing}>
+          <div class="slds-is-relative slds-p-vertical_large">
+            <lightning-spinner alternative-text="Procesando..." size="medium"></lightning-spinner>
+            <p class="slds-text-align_center slds-m-top_medium">{loadingMessage}</p>
+          </div>
+        </template>
+
+        <!-- Contenido (se mantiene SIEMPRE montado una vez inicia) -->
+        <template lwc:elseif={showStoreContent}>
+          <div class="slds-section slds-is-open slds-is-relative">
+
+            <!-- Overlay de busy (aplicar voucher, pedir params, etc.) -->
+            <template if:true={isBusy}>
+              <div class="slds-is-absolute slds-align_absolute-center slds-backdrop slds-backdrop_open" style="inset:0;">
+                <lightning-spinner alternative-text="Procesando..." size="medium"></lightning-spinner>
+              </div>
+            </template>
+
+            <div class="slds-section__content">
+              <lightning-layout vertical-align="start" pull-to-boundary="small">
+                <lightning-layout-item size="7" padding="around-small">
+                  <c-stck_seleccion-producto onaddtocart={handleAddToCart}></c-stck_seleccion-producto>
+                </lightning-layout-item>
+                <lightning-layout-item size="5" padding="around-small">
+                  <div class="sticky-sidebar">
+                    <c-stck_resumen-cesta
+                      cart-items={cartItems}
+                      subtotal={subtotal}
+                      discount-amount={discountAmount}
+                      tax-amount={taxAmount}
+                      final-total={finalTotal}
+                      vat-rate={vatRate}
+                      onupdatecart={handleUpdateCart}>
+                    </c-stck_resumen-cesta>
+
+                    <div class="slds-m-top_large">
+                      <c-stck_formulario-envio
+                        onformupdate={handleFormUpdate}
+                        user-info={userInfo}>
+                      </c-stck_formulario-envio>
+                    </div>
+
+                    <div class="slds-m-top_large">
+                      <c-stck_formulario-pago
+                        total-amount={finalTotal}
+                        subtotal={subtotal}
+                        discount-amount={discountAmount}
+                        tax-amount={taxAmount}
+                        vat-rate={vatRate}
+                        promo-code={promoCode}
+                        is-promo-applied={hasPromoApplied}
+                        onapplypromo={handleApplyPromo}
+                        onclearpromo={handleClearPromo}
+                        onfinalsubmit={handleFinalSubmit}
+                        redsys-params={redsysParams}>
+                      </c-stck_formulario-pago>
+                    </div>
+
+                    <!-- (Host MOVIDO fuera del bloque condicional más abajo) -->
+
+                  </div>
+                </lightning-layout-item>
+              </lightning-layout>
+            </div>
+          </div>
+        </template>
+
+        <template lwc:elseif={showClosedMessage}>
+          <div class="slds-box slds-theme_warning slds-text-align_center slds-p-around_large">
+            <lightning-icon icon-name="utility:warning" size="large"></lightning-icon>
+            <h3 class="slds-text-heading_medium slds-m-vertical_medium">Tienda Cerrada</h3>
+            <p>La tienda de empleados no está abierta en este momento. Por favor, vuelve a intentarlo durante el horario de apertura.</p>
+          </div>
+        </template>
+
+      </div>
+
+      <!-- 🔒 Host global para RedSys: SIEMPRE presente (fuera de if/elseif) -->
+      <div data-id="paymentFormHost" lwc:dom="manual"></div>
+
+    </lightning-card>
+  </div>
+</template>

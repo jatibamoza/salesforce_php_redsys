@@ -1,0 +1,58 @@
+<template>
+    <lightning-card icon-name="standard:store">
+        <h2 slot="title">{cardTitle}</h2>
+
+        <template lwc:if={isLoading}>
+            <div class="spinner-container">
+                <lightning-spinner alternative-text="Procesando..." size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <template lwc:else>
+            <template lwc:if={showEmailScreen}>
+                <div class="slds-m-around_medium">
+                    <p class="slds-m-bottom_medium">Por favor, introduce tu correo electrónico corporativo para recibir un código de acceso.</p>
+                    <lightning-input 
+                        type="email" 
+                        label="Correo Electrónico" 
+                        value={email}
+                        onchange={handleEmailChange}
+                        placeholder="tu.nombre@laliga.es"
+                        required>
+                    </lightning-input>
+                </div>
+                <div slot="footer">
+                    <lightning-button 
+                        label="Enviar Código" 
+                        variant="brand" 
+                        onclick={handleSendCodeClick}>
+                    </lightning-button>
+                </div>
+            </template>
+
+            <template lwc:elseif={showCodeScreen}>
+                <div class="slds-m-around_medium">
+                    <p class="slds-m-bottom_medium">Hemos enviado un código de 6 dígitos a <strong>{email}</strong>. Por favor, introdúcelo a continuación.</p>
+                    <lightning-input 
+                        type="text" 
+                        label="Código de Verificación" 
+                        max-length="6"
+                        onchange={handleCodeChange}>
+                    </lightning-input>
+                </div>
+                <div slot="footer">
+                    <lightning-button 
+                        label="Verificar" 
+                        variant="brand" 
+                        onclick={handleVerifyCodeClick}>
+                    </lightning-button>
+                </div>
+            </template>
+
+            <template lwc:elseif={isVerified}>
+                <c-stck_cesta-de-compras-scroll></c-stck_cesta-de-compras-scroll>
+            </template>
+        </template>
+        
+    </lightning-card>
+</template>

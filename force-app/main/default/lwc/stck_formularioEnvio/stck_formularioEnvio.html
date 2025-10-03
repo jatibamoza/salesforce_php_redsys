@@ -1,0 +1,102 @@
+<template>
+  <lightning-card title="Información de la Solicitud" icon-name="utility:send">
+    <div class="slds-p-around_medium">
+
+      <!-- DATOS DEL SOLICITANTE -->
+      <p class="slds-text-heading_small slds-m-bottom_medium">Datos del Solicitante</p>
+
+      <lightning-input class="slds-m-bottom_small"
+        label="Nombre Completo del Empleado"
+        name="name" value={formData.name}
+        onchange={handleFieldChange} required>
+      </lightning-input>
+
+      <lightning-input class="slds-m-bottom_small"
+        type="email" label="Correo Electrónico"
+        name="email" value={formData.email}
+        onchange={handleFieldChange} required>
+      </lightning-input>
+
+      <!-- DATOS DE FACTURACIÓN (Estructurados) -->
+      <p class="slds-text-heading_small slds-m-top_large slds-m-bottom_medium">Dirección de Facturación</p>
+
+      <lightning-input class="slds-m-bottom_small"
+        label="Calle / Vía" name="billingStreetName"
+        value={formData.billingStreetName} onchange={handleFieldChange} required>
+      </lightning-input>
+
+      <div class="slds-grid slds-gutters slds-m-bottom_small">
+        <div class="slds-col slds-size_1-of-3">
+          <lightning-input label="Número" name="billingStreetNumber"
+            value={formData.billingStreetNumber} onchange={handleFieldChange} required>
+          </lightning-input>
+        </div>
+        <div class="slds-col slds-size_2-of-3">
+          <lightning-input label="Piso / Puerta (opcional)"
+            name="billingAddressLine2" value={formData.billingAddressLine2}
+            onchange={handleFieldChange}>
+          </lightning-input>
+        </div>
+      </div>
+
+      <div class="slds-grid slds-gutters slds-m-bottom_small">
+        <div class="slds-col slds-size_1-of-3">
+          <lightning-input label="Código Postal" name="billingPostalCode"
+            value={formData.billingPostalCode} maxlength="5" pattern="[0-9]{5}"
+            message-when-pattern-mismatch="Debe tener 5 dígitos"
+            onchange={handleFieldChange} required>
+          </lightning-input>
+        </div>
+        <div class="slds-col slds-size_1-of-3">
+          <lightning-input label="Ciudad" name="billingCity"
+            value={formData.billingCity} onchange={handleFieldChange} required>
+          </lightning-input>
+        </div>
+        <div class="slds-col slds-size_1-of-3">
+          <lightning-combobox label="Provincia" name="billingProvince"
+            value={formData.billingProvince} options={billingProvinceOptions}
+            onchange={handleFieldChange} required>
+          </lightning-combobox>
+        </div>
+      </div>
+
+      <!-- IDENTIFICACIÓN FISCAL -->
+      <lightning-input class="slds-m-bottom_small"
+        label="DNI / NIF (Facturación)" name="dni"
+        value={formData.dni} onchange={handleFieldChange} required>
+      </lightning-input>
+
+      <!-- LUGAR DE ENTREGA -->
+      <p class="slds-text-heading_small slds-m-top_large slds-m-bottom_medium">Lugar de entrega</p>
+      <lightning-radio-group
+        name="deliveryOption" label="Selecciona una opción"
+        options={deliveryOptions} value={deliverySelection}
+        type="radio" onchange={handleDeliveryChange} required>
+      </lightning-radio-group>
+
+      <!-- AVISO MRW -->
+      <template if:true={selectedMRW}>
+        <div class="slds-m-top_small slds-text-color_weak">
+          * Envíos MRW disponibles solo para <strong>España peninsular</strong>
+          (excluye Illes Balears, Canarias, Ceuta y Melilla).
+        </div>
+      </template>
+
+      <!-- FORMULARIO DE ENVÍO MRW -->
+      <template if:true={selectedMRW}>
+        <c-stck-shipment-form
+          recipient-name={formData.name}
+          recipient-email={formData.email}
+
+          billing-street-name={formData.billingStreetName}
+          billing-street-number={formData.billingStreetNumber}
+          billing-address-line2={formData.billingAddressLine2}
+          billing-postal-code={formData.billingPostalCode}
+          billing-city={formData.billingCity}
+          billing-province={formData.billingProvince}>
+        </c-stck-shipment-form>
+      </template>
+
+    </div>
+  </lightning-card>
+</template>

@@ -1,0 +1,22 @@
+<template>
+    <lightning-card title="Pago con Tarjeta" icon-name="standard:checkout">
+        <div class="slds-p-around_medium">
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Procesando..." size="medium"></lightning-spinner>
+            </template>
+            <p class="slds-m-bottom_medium">Haga clic en el botón para proceder al pago seguro a través de RedSys.</p>
+            <lightning-button
+                label="Pagar Ahora"
+                variant="brand"
+                onclick={handlePaymentClick}
+                disabled={isLoading}>
+            </lightning-button>
+            <template if:true={error}>
+                <div class="slds-text-color_error slds-m-top_small" role="alert">
+                    <p><strong>Error al iniciar el pago:</strong></p>
+                    <p>{error}</p>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

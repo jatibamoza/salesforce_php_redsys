@@ -1,0 +1,85 @@
+<template>
+	<lightning-card title="Catálogo de Productos" icon-name="standard:article">
+		<div class="slds-m-around_medium">
+			<lightning-input label="Buscar productos" type="search" onchange={handleSearchKeyChange}></lightning-input>
+		</div>
+		<div class="slds-p-around_medium scroller">
+			<template lwc:if={isLoading}>
+				<div class="slds-is-relative slds-p-vertical_large"><lightning-spinner alternative-text="Cargando..." size="medium"></lightning-spinner></div>
+			</template>
+			<template lwc:elseif={error}>
+				<p>Ha ocurrido un error al cargar los productos.</p>
+			</template>
+			<template lwc:elseif={hasResults}>
+				<template for:each={groupedProducts} for:item="product">
+					<div key={product.baseName} class="slds-m-bottom_small">
+						<div class="slds-box slds-box_x-small slds-media product-card">
+							<div class="slds-media__figure">
+								<div class="image-container">
+									<lightning-formatted-rich-text value={product.mainImageUrl}></lightning-formatted-rich-text>
+								</div>
+							</div>
+							<div class="slds-media__body">
+								<p class="slds-text-heading_small">
+									<a href="#" onclick={handleProductClick} data-id={product.Id} title="Ver detalles">{product.baseName}</a>
+								</p>
+								<p class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small">Categoría: {product.family}</p>
+								<p class="slds-m-bottom_small">{product.description}</p>
+								<template for:each={product.variants} for:item="variant">
+									<div key={variant.productId}>
+										<p class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small">Variante: {variant.variantName}</p>
+										<p class="product-price">
+											<lightning-formatted-number value={variant.price} format-style="currency" currency-code="EUR"></lightning-formatted-number>
+										</p>
+										<div class="slds-text-align_right">
+											<lightning-button label="Añadir" variant="brand" icon-name="utility:add"
+												data-id={variant.productId}
+												data-name={variant.fullName}
+												data-price={variant.price}
+												onclick={handleAddToCartClick}>
+											</lightning-button>
+										</div>
+									</div>
+								</template>
+							</div>
+						</div>
+					</div>
+				</template>
+			</template>
+			<template lwc:else>
+				<p class="slds-text-align_center">No se encontraron productos que coincidan con su búsqueda.</p>
+			</template>
+		</div>
+	</lightning-card>
+
+	<template lwc:if={isModalOpen}>
+		<section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+			<div class="slds-modal__container slds-modal_large">
+				<header class="slds-modal__header">
+					<lightning-button-icon icon-name="utility:close" onclick={closeModal} alternative-text="Cerrar" variant="bare-inverse" class="slds-modal__close"></lightning-button-icon>
+					<h2 class="slds-text-heading_medium slds-hyphenate">{selectedProduct.Product2.Name}</h2>
+				</header>
+				<div class="slds-modal__content slds-p-around_medium">
+					<lightning-layout>
+						<lightning-layout-item size="6" padding="around-small">
+							 <div class="modal-image-container">
+								<lightning-formatted-rich-text value={selectedProduct.Product2.Imagen__c}></lightning-formatted-rich-text>
+							</div>
+						</lightning-layout-item>
+						<lightning-layout-item size="6" padding="around-small">
+							<p class="slds-text-body_small slds-text-color_weak slds-m-bottom_small">Categoría: {selectedProduct.Product2.Family}</p>
+							 <p class="slds-m-bottom_medium">{selectedProduct.Product2.Description}</p>
+							 <p class="product-price slds-text-heading_medium">
+								<lightning-formatted-number value={selectedProduct.UnitPrice} format-style="currency" currency-code="EUR"></lightning-formatted-number>
+							</p>
+						</lightning-layout-item>
+					</lightning-layout>
+				</div>
+				<footer class="slds-modal__footer">
+					<lightning-button label="Cerrar" onclick={closeModal}></lightning-button>
+				</footer>
+			</div>
+		</section>
+		<div class="slds-backdrop slds-backdrop_open"></div>
+	</template>
+</template>

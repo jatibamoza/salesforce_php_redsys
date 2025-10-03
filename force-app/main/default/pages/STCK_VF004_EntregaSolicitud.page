@@ -1,0 +1,118 @@
+<apex:page controller="STCK_VF004_EntregaSolicitudController" sidebar="false" showHeader="false" lightningStylesheets="true" standardStylesheets="false" cache="false">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </head>
+    <style type="text/css">
+        body, div, span, input, label, h1, h2, h3, h4, h5, h6, p, td {
+            font-family: Arial, sans-serif !important;
+        }
+        .required:after { content:" *"; color: red; }
+        .aviso { color: red; }
+        .avisoFuerte { color: red; font-weight: bold; }
+        .avisoDerecha { color: red; float: right; }
+        .avisoFuerteDerecha { color: red; font-weight: bold; float: right; }
+        img:not(.helpIcon) { transition: transform 1.2s; }
+        img:hover:not(.helpIcon) { zoom: 2; }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .logo-container img {
+            max-width: 150px; /* Tamaño adaptado para dispositivos móviles */
+            height: auto;
+        }
+        .content-block {
+            margin: 20px auto;
+            max-width: 90%; /* Se adapta a pantallas pequeñas */
+            padding: 15px;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .page-title {
+            font-size: 1.5rem; /* Tamaño relativo para escalabilidad */
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .btn-primary {
+            background-color: #0070d2;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 1rem; /* Tamaño adaptado */
+        }
+        @media (max-width: 768px) {
+            .content-block {
+                padding: 10px;
+            }
+            .page-title {
+                font-size: 1.2rem;
+            }
+            .btn-primary {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 1rem;
+            }
+        }
+    </style>
+
+    <!-- Encabezado con logo centrado -->
+    <div class="logo-container">
+        <apex:image alt="laliga monocolor" title="laliga monocolor"
+            url="{!URLFOR($Resource.STCK_STR001_All, 'images/laliga-h-monocolor-sin-margen-inferior.png')}" />
+    </div>
+
+    <div class="content-block">
+        <apex:form >
+            <apex:pageMessages />
+            <div class="page-title">Confirmación de Entrega</div>
+            
+            <!-- Sección de Datos de la Solicitud -->
+            <apex:outputPanel rendered="{!NOT(ISNULL(solicitud))}">
+                <apex:pageBlock title="Datos de la Solicitud">
+                    <apex:pageBlockSection columns="1">
+                        <div><b>Número de solicitud:</b> {!solicitud.Name}</div>
+                        <div><b>Persona Solicitante:</b> {!solicitud.PersonaSolicitante__c}</div>
+                        <div><b>Dirección:</b> {!solicitud.Direccion__c}</div>
+                        <div><b>Área:</b> {!solicitud.Area__c}</div>
+                        <div><b>Lugar de entrega:</b> {!solicitud.LugarEntrega__c}</div>
+                        <apex:outputText escape="false" value="<b>Líneas de Solicitud:</b>  {!solicitud.STCK_HTMLProducts__c}" /><br/>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </apex:outputPanel>
+
+            <!-- Mensaje de Estado -->
+            <apex:outputPanel rendered="{!NOT(mostrarConfirmacion)}">
+                <apex:outputText value="{!avisoEstado}" style="color:red; font-weight:bold;" /><br/><br/>
+            </apex:outputPanel>
+            
+            <!-- Formulario de Confirmación -->
+            <apex:outputPanel rendered="{!mostrarConfirmacion}">
+                <div style="border:none; padding:0; margin:0;">
+                    <apex:pageBlock title="">
+                        <apex:pageBlockSection columns="1">
+                            <apex:outputLabel value="Nombre de quien recibe" style="font-weight:bold;"/>
+                            <apex:inputText id="nombreRecibido" value="{!wrapper.nombreRecibido}" style="width:100%;"/>
+                        </apex:pageBlockSection>
+                    </apex:pageBlock>
+                </div>
+                <div style="margin-top:20px; text-align:center;">
+                    <apex:commandButton value="Confirmar Entrega" action="{!confirmarEntrega}" styleClass="btn-primary"/>
+                </div>
+            </apex:outputPanel>
+        </apex:form>
+    </div>
+</apex:page>

@@ -1,0 +1,45 @@
+/* stck_productCatalog.css */
+
+/* Estilo para la tarjeta de cada producto */
+.product-card {
+    border: 1px solid #d8dde6;
+    transition: box-shadow 0.3s ease-in-out;
+    height: 100%; /* Asegura que todas las tarjetas en una fila tengan la misma altura */
+}
+
+/* Efecto visual al pasar el ratón sobre la tarjeta */
+.product-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Contenedor que envuelve la imagen para estandarizar su tamaño y alineación */
+.product-image-container {
+    width: 100%;
+    height: 150px; /* Altura fija para el área de la imagen */
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Oculta cualquier parte de la imagen que se desborde */
+}
+
+/* Selector específico para aplicar estilos a la etiqueta <img>
+  que es renderizada DENTRO del componente lightning-formatted-rich-text.
+  Esto asegura que cualquier imagen del campo enriquecido se ajuste a nuestro diseño.
+*/
+.product-image-container lightning-formatted-rich-text img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover; /* Escala la imagen para cubrir el contenedor sin perder la proporción */
+    border-radius: 4px;
+}
+
+.truncatedText{
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height:56px;
+}

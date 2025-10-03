@@ -1,0 +1,49 @@
+<template>
+    <lightning-card title="Resumen del Pedido" icon-name="utility:summary">
+        <div class="slds-m-around_medium">
+
+            <template lwc:if={hasItems}>
+                <ul class="slds-list_vertical slds-has-dividers_bottom-space">
+                    <template for:each={cartItems} for:item="item">
+                        <li key={item.id} class="slds-list__item slds-p-vertical_small">
+                            <div class="slds-grid slds-wrap slds-grid_vertical-align-center">
+                                <div class="slds-col slds-size_5-of-12">
+                                    <p class="slds-truncate" title={item.name}>{item.name}</p>
+                                </div>
+                                <div class="slds-col slds-size_4-of-12 slds-text-align_center">
+                                    <lightning-input 
+                                        type="number" 
+                                        label="Cantidad" 
+                                        variant="label-hidden" 
+                                        min="1" 
+                                        max="100" 
+                                        value={item.quantity}
+                                        data-id={item.id}
+                                        onchange={handleQuantityChange}>
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_2-of-12 slds-text-align_right">
+                                    <p><lightning-formatted-number value={item.totalPrice} format-style="currency" currency-code="EUR"></lightning-formatted-number></p>
+                                </div>
+                                <div class="slds-col slds-size_1-of-12 slds-text-align_right">
+                                     <lightning-button-icon icon-name="utility:delete" variant="border-filled" alternative-text="Eliminar" data-id={item.id} onclick={handleRemoveItem}></lightning-button-icon>
+                                </div>
+                            </div>
+                        </li>
+                    </template>
+                </ul>
+                <div class="slds-grid slds-m-top_medium slds-text-heading_medium">
+                    <div class="slds-col slds-size_1-of-2">Total:</div>
+                    <div class="slds-col slds-size_1-of-2 slds-text-align_right">
+                        <lightning-formatted-number value={totalAmount} format-style="currency" currency-code="EUR"></lightning-formatted-number>
+                    </div>
+                </div>
+            </template>
+            
+            <template lwc:else>
+                <p class="slds-text-align_center slds-p-vertical_large">Tu cesta está vacía.</p>
+            </template>
+
+        </div>
+    </lightning-card>
+</template>

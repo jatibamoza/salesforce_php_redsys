@@ -1,0 +1,120 @@
+<template>
+  <lightning-card title="Datos del Envío (MRW · Solo península)" icon-name="utility:send">
+    <div class="slds-m-around_medium slds-grid slds-wrap slds-gutters">
+
+      <!-- Copiar desde facturación -->
+      <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+        <lightning-input type="toggle" message-toggle-active="Sí" message-toggle-inactive="No"
+          label="Usar la misma dirección que la de facturación"
+          name="copyFromBilling" checked={copyFromBilling}
+          onchange={handleCopyToggle}>
+        </lightning-input>
+      </div>
+
+      <!-- Destinatario -->
+      <div class="slds-col slds-size_1-of-2">
+        <lightning-input label="Nombre del destinatario" name="recipientName"
+          value={recipientName} onchange={handleInputChange} required>
+        </lightning-input>
+      </div>
+
+      <div class="slds-col slds-size_1-of-2">
+        <lightning-input type="email" label="Correo electrónico (notificaciones MRW)"
+          name="recipientEmail" value={recipientEmail}
+          onchange={handleInputChange} required>
+        </lightning-input>
+      </div>
+
+      <!-- Dirección (solo ES península) -->
+      <div class="slds-col slds-size_1-of-1 slds-text-title_caps slds-m-top_medium slds-m-bottom_x-small">
+        Dirección de entrega (España peninsular)
+      </div>
+
+      <div class="slds-col slds-size_1-of-1">
+        <lightning-input label="Calle / Vía" name="streetName"
+          value={streetName} onchange={handleInputChange} required>
+        </lightning-input>
+      </div>
+
+      <div class="slds-col slds-size_1-of-3">
+        <lightning-input label="Número" name="streetNumber"
+          value={streetNumber} onchange={handleInputChange} required>
+        </lightning-input>
+      </div>
+
+      <div class="slds-col slds-size_2-of-3">
+        <lightning-input label="Piso / Puerta (opcional)" name="addressLine2"
+          value={addressLine2} onchange={handleInputChange}>
+        </lightning-input>
+      </div>
+
+      <div class="slds-col slds-size_1-of-3">
+        <lightning-input label="Código Postal" name="recipientZipCode"
+          value={recipientZipCode} maxlength="5" pattern="[0-9]{5}"
+          message-when-pattern-mismatch="Debe tener 5 dígitos"
+          onchange={handlePostalChange} required>
+        </lightning-input>
+        <template if:true={postalError}>
+          <div class="slds-text-color_error slds-m-top_x-small">{postalError}</div>
+        </template>
+      </div>
+
+      <div class="slds-col slds-size_1-of-3">
+        <lightning-input label="Ciudad" name="recipientCity"
+          value={recipientCity} onchange={handleInputChange} required>
+        </lightning-input>
+      </div>
+
+      <div class="slds-col slds-size_1-of-3">
+        <lightning-combobox label="Provincia" name="recipientState"
+          value={recipientState} options={stateOptions}
+          onchange={handleProvinceChange} required>
+        </lightning-combobox>
+      </div>
+
+      <!-- Servicio y tramo horario -->
+      <div class="slds-col slds-size_1-of-2 slds-m-top_medium">
+        <lightning-input label="Servicio" value="0800 (Ecommerce)" disabled></lightning-input>
+      </div>
+      <div class="slds-col slds-size_1-of-2 slds-m-top_medium">
+        <lightning-combobox label="Tramo horario" name="timeWindow"
+          value={timeWindow} options={timeWindowOptions}
+          onchange={handleInputChange} required>
+        </lightning-combobox>
+      </div>
+
+      
+      <!-- Bultos y peso 
+      <div class="slds-col slds-size_1-of-2">
+        <lightning-input type="number" label="Número de bultos" name="parcels"
+          value={parcels} min="1" step="1" onchange={handleInputChange} required>
+        </lightning-input>
+      </div>
+      <div class="slds-col slds-size_1-of-2">
+        <lightning-input type="number" label="Peso total (kg)" name="weightKg"
+          value={weightKg} min="1" step="1" onchange={handleInputChange} required>
+        </lightning-input>
+      </div>-->
+
+      <!-- Notas -->
+      <div class="slds-col slds-size_1-of-1">
+        <lightning-textarea label="Notas adicionales (opcional)" name="additionalNotes"
+          value={additionalNotes} onchange={handleInputChange}>
+        </lightning-textarea>
+      </div>
+
+      <!-- Mensajes -->
+      <template if:true={formError}>
+        <div class="slds-col slds-size_1-of-1 slds-m-top_small slds-text-color_error">{formError}</div>
+      </template>
+      <template if:true={infoNote}>
+        <div class="slds-col slds-size_1-of-1 slds-m-top_small slds-text-color_weak">{infoNote}</div>
+      </template>
+
+      <div class="slds-col slds-size_1-of-1 slds-text-color_weak slds-m-top_small">
+        * Cobertura: solo España peninsular. Provincias excluidas: Illes Balears, Las Palmas,
+        Santa Cruz de Tenerife, Ceuta y Melilla. Códigos postales excluidos: 07***, 35***, 38***, 51***, 52***.
+      </div>
+    </div>
+  </lightning-card>
+</template>

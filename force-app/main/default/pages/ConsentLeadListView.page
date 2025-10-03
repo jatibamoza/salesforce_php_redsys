@@ -1,0 +1,9 @@
+<apex:page standardController="HRC_ConsentsLead__c" recordSetVar="Cs" extensions="ListViewController" lightningStylesheets="True">
+    
+   <!--This is how we call the Flow with a input paramater. Here ConsentLeadsSelectedRecs is the input variable of the Flow-->
+   <flow:interview name="HRC_Consent_Lead_Mass_Email" buttonLocation="bottom" buttonStyle="background-color:rgb(27, 82, 151); color:white;"
+                   finishLocation="{!URLFOR($Action.HRC_ConsentsLead__c.List, $ObjectType.HRC_ConsentsLead__c)}">
+        <apex:param name="ConsentLeadsSelectedRecs" value="{!LstSelectedConsentLeads}" />
+    </flow:interview>
+    
+</apex:page>

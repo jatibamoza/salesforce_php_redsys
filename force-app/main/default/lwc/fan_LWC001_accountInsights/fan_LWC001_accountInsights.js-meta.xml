@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>50</apiVersion>
+    <description>LWC que muestra visualmente la información de consumos (insights) de la cuenta</description>
+    <masterLabel>fan_LWC001_accountInsights</masterLabel>
+	<isExposed>true</isExposed>
+	<targets>
+		<target>lightning__RecordPage</target>
+	</targets>
+	<targetConfigs>
+		<targetConfig targets="lightning__RecordPage">
+			<property name="object" type="String" required="true" default="Account"/>
+			<objects>
+				<object>Account</object>
+				<object>Case</object>
+				<object>Opportunity</object>
+			</objects>
+			<supportedFormFactors>
+				<supportedFormFactor type="Small" />
+				<supportedFormFactor type="Large" />
+			</supportedFormFactors>
+		</targetConfig>
+	</targetConfigs>
+</LightningComponentBundle>

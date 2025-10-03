@@ -1,0 +1,52 @@
+<template>
+    <lightning-card title="Cambiar Producto de Oportunidad" icon-name="standard:product">
+        <div class="slds-p-around_medium">
+            <h2 class="slds-text-heading_medium slds-m-bottom_medium">Productos Actuales</h2>
+            <p class="slds-m-bottom_small">Seleccione el producto que desea reemplazar.</p>
+            
+            <lightning-datatable
+                key-field="Id"
+                data={opportunityProducts}
+                columns={columns}
+                onrowselection={handleRowSelection}
+                max-row-selection="1">
+            </lightning-datatable>
+
+            <template if:true={selectedLineItemId}>
+                <div class="slds-m-top_large">
+                    <h2 class="slds-text-heading_medium slds-m-bottom_medium">Seleccionar Nuevo Producto</h2>
+                    
+                    <lightning-input
+                        label="Buscar Productos"
+                        type="search"
+                        onchange={handleSearch}
+                        placeholder="Escriba para buscar..."
+                        class="slds-m-bottom_medium">
+                    </lightning-input>
+
+                    <template if:true={products}>
+                        <lightning-combobox
+                            name="newProduct"
+                            label="Nuevo Producto"
+                            value={newPricebookEntryId}
+                            placeholder="Seleccione un nuevo producto"
+                            options={productOptions}
+                            onchange={handleProductSelection}>
+                        </lightning-combobox>
+                    </template>
+                </div>
+                
+                <div class="slds-m-top_large slds-text-align_right">
+                    <lightning-button label="Cancelar" onclick={closeAction}></lightning-button>
+                    <lightning-button
+                        label="Confirmar Cambio"
+                        variant="brand"
+                        onclick={confirmChange}
+                        disabled={isConfirmButtonDisabled}
+                        class="slds-m-left_x-small">
+                    </lightning-button>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

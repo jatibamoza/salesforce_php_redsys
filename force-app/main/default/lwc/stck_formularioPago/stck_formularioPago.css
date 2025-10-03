@@ -1,0 +1,26 @@
+.payment-banner-logo {
+    max-width: 280px; 
+    height: auto;      
+    margin-top: 5px;
+    /* Centramos la imagen */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+.redsys-placeholder {
+    border: 2px dashed #dddbda;
+    border-radius: .25rem;
+    background-color: #f9f9f9;
+    color: #514f4d;
+}
+.price-breakdown {
+    /* Eliminamos el max-width para que ocupe todo el espacio */
+    text-align: left;
+    font-size: 0.9rem;
+    color: #3e3e3c;
+    border-top: 1px solid #dddbda;
+    padding-top: 0.75rem;
+}
+.total-line {
+    font-weight: bold;
+}

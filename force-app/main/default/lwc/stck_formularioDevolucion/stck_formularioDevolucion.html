@@ -1,0 +1,85 @@
+<template>
+    <lightning-card title="Formulario de Devolución de Productos" icon-name="standard:return_order">
+        <div class="slds-m-around_medium">
+
+            <template lwc:if={isLoading}>
+                <lightning-spinner alternative-text="Procesando..."></lightning-spinner>
+            </template>
+
+            <template lwc:if={isSearchStep}>
+                <p class="slds-m-bottom_medium">Introduce el código y el correo electrónico asociados a tu solicitud para iniciar el proceso de devolución.</p>
+                <lightning-input
+                    class="slds-m-bottom_small"
+                    label="Código de Solicitud (ej. SM-01498)"
+                    value={requestCode}
+                    onchange={handleCodeChange}
+                    required>
+                </lightning-input>
+                <lightning-input
+                    type="email"
+                    label="Correo Electrónico de la Solicitud"
+                    value={email}
+                    onchange={handleEmailChange}
+                    required>
+                </lightning-input>
+                <div class="slds-m-top_medium slds-text-align_right">
+                    <lightning-button label="Buscar Solicitud" variant="brand" onclick={handleFindRequest}></lightning-button>
+                </div>
+            </template>
+
+            <template lwc:elseif={isReviewStep}>
+                <h3 class="slds-text-heading_medium slds-m-bottom_small">Revisa tu Solicitud</h3>
+                <p><strong>Código:</strong> {orderDetails.Name}</p>
+                <p><strong>Solicitante:</strong> {orderDetails.PersonaSolicitante__c}</p>
+                <p class="slds-m-bottom_medium"><strong>Fecha de Creación:</strong> <lightning-formatted-date-time value={orderDetails.CreatedDate}></lightning-formatted-date-time></p>
+                
+                <h4 class="slds-text-heading_small slds-m-top_large slds-m-bottom_x-small">Selecciona los artículos a devolver:</h4>
+                
+                <lightning-datatable
+                    key-field="Id"
+                    data={orderLines}
+                    columns={columns}
+                    onrowselection={handleRowSelection}>
+                </lightning-datatable>
+                
+                <lightning-combobox
+                    name="returnMethod"
+                    label="Método de Devolución"
+                    options={returnMethodOptions}
+                    value={selectedMethod}
+                    onchange={handleMethodChange}
+                    class="slds-m-vertical_medium"
+                    required>
+                </lightning-combobox>
+
+                <div class="slds-m-top_medium slds-text-align_right">
+                    <lightning-button label="Confirmar Devolución de Artículos" variant="brand" onclick={handleConfirmReturn}></lightning-button>
+                </div>
+            </template>
+
+            <template lwc:elseif={isAlreadyReturnedStep}>
+                <div class="slds-box slds-theme_warning slds-text-align_center slds-p-around_large">
+                    <lightning-icon icon-name="utility:warning" size="large" variant="warning"></lightning-icon>
+                    <h3 class="slds-text-heading_medium slds-m-top_medium">Devolución ya registrada</h3>
+                    <p class="slds-m-vertical_small">Ya existe una solicitud de devolución para el pedido <strong>{orderDetails.Name}</strong>. A continuación se muestran los detalles:</p>
+                    <div class="slds-text-align_left slds-box slds-box_xx-small">
+                        <p><strong>Código de Devolución:</strong> {existingReturnDetails.Name}</p>
+                        <p><strong>Fecha de Solicitud:</strong> <lightning-formatted-date-time value={existingReturnDetails.Fechadesolicitud__c} year="numeric" month="numeric" day="numeric"></lightning-formatted-date-time></p>
+                        <p><strong>Estado:</strong> {existingReturnDetails.Estado__c}</p>
+                    </div>
+                    <lightning-button label="Consultar otra solicitud" onclick={handleNewReturn} class="slds-m-top_medium"></lightning-button>
+                </div>
+            </template>
+
+            <template lwc:elseif={isSuccessStep}>
+                <div class="slds-box slds-theme_success slds-text-align_center slds-p-around_large">
+                    <lightning-icon icon-name="utility:success" size="large" variant="inverse"></lightning-icon>
+                    <h3 class="slds-text-heading_medium slds-m-top_medium">Devolución Iniciada</h3>
+                    <p>Hemos registrado la devolución de los artículos seleccionados del pedido <strong>{orderDetails.Name}</strong>.</p>
+                    <lightning-button label="Iniciar otra devolución" onclick={handleNewReturn} class="slds-m-top_medium"></lightning-button>
+                </div>
+            </template>
+
+        </div>
+    </lightning-card>
+</template>

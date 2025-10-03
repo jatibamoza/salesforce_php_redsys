@@ -1,0 +1,4 @@
+.spinner-container {
+    position: relative;
+    min-height: 150px; /* Le da al spinner un espacio mínimo para mostrarse */
+}

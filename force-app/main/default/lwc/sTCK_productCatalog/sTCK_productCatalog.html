@@ -1,0 +1,74 @@
+<template>
+    <lightning-card title="Catálogo de Productos" icon-name="standard:catalog">
+        <div class="slds-m-around_medium">
+            <div class="slds-grid slds-gutters slds-m-bottom_medium">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_2-of-3">
+                    <lightning-input
+                        label="Buscar por nombre"
+                        type="search"
+                        value={searchKey}
+                        onchange={handleSearchKeyChange}
+                        placeholder="Escriba el nombre del producto...">
+                    </lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <lightning-combobox
+                        label="Filtrar por Categoría"
+                        value={selectedCategory}
+                        options={categoryOptions}
+                        onchange={handleCategoryChange}
+                        placeholder="-- Todas las categorías --">
+                    </lightning-combobox>
+                </div>
+            </div>
+
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Cargando..." size="medium"></lightning-spinner>
+            </template >
+
+            <lightning-layout multiple-rows="true" pull-to-boundary="small" class="slds-grid slds-gutters" >
+                <template if:true={groupedProducts} for:each={groupedProducts} for:item="product">
+                    <lightning-layout-item key={product.Id} class="slds-col slds-size_1-of-8 slds-p-bottom_small">
+                        <article class="slds-card slds-p-around_small product-card">
+                            
+                            <div class="product-image-container">
+                                <lightning-formatted-rich-text 
+                                    value={product.mainImageUrl}>
+                                </lightning-formatted-rich-text>
+                            </div>
+
+                            <div class="slds-media__body">
+                                <h3 class="slds-text-heading_small slds-m-bottom_xx-small truncatedText">
+                                    <p data-id={product.baseName}>{product.baseName}</p>
+                                </h3>
+                                <p class="slds-m-bottom_small slds-text-body_small truncatedText">{product.description}</p>
+                                <p class="slds-m-bottom_small slds-m-vertical_medium">
+                                    <strong>Categoría:</strong> {product.family}
+                                </p>
+                                <p class="slds-text-heading_medium">
+                                    <lightning-formatted-number
+                                        value={product.UnitPrice}
+                                        format-style="currency"
+                                        currency-code="EUR">
+                                    </lightning-formatted-number>
+                                </p>
+                                <p class="slds-m-bottom_small slds-m-vertical_medium">
+                                    <strong>Variantes: </strong>
+                                    <template if:true={product.variants} for:each={product.variants} for:item="productVariant">
+                                        {productVariant.variantName} 
+                                    </template>
+                                </p>
+                            </div>
+                        </article>
+                    </lightning-layout-item>
+                </template>
+            </lightning-layout>
+
+             <template if:true={isNoResults}>
+                <div class="slds-align_absolute-center slds-m-top_large">
+                    <p>No se encontraron productos que coincidan con su búsqueda.</p>
+                </div>
+            </template >
+        </div>
+    </lightning-card>
+</template>

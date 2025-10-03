@@ -1,0 +1,42 @@
+.scroller {
+    max-height: 800px;
+    overflow-y: auto;
+}
+
+.image-container {
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0; /* Evita que la imagen se encoja */
+}
+
+.image-container lightning-formatted-rich-text img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
+
+.product-card {
+    height: 100%;
+}
+
+/* Estilo para el precio más grande y en negrita */
+.product-price {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+/* Estilo para la imagen dentro del pop-up */
+.modal-image-container {
+    width: 100%;
+    text-align: center;
+}
+
+.modal-image-container lightning-formatted-rich-text img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
