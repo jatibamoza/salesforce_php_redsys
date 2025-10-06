@@ -268,7 +268,7 @@ export default class Stck_cestaDeComprasScroll extends LightningElement {
 
 		createOrderAndGetBridgeParams({ wrapper })//createOrderAndGetRedsysParams({ wrapper })
 			.then((params) => {
-				if (!params || !params.redsysUrl) {
+				if (!params || !params.bridgeUrl) {//redsysUrl
 					throw new Error('Parámetros de RedSys vacíos o incompletos.');
 				}
 

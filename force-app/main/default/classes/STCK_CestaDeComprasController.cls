@@ -89,6 +89,7 @@ public without sharing class STCK_CestaDeComprasController {
 		@AuraEnabled public String DS_MERCHANT_MERCHANTURL;     // absoluta
 		@AuraEnabled public String DS_MERCHANT_URLOK;           // absoluta
 		@AuraEnabled public String DS_MERCHANT_URLKO;           // absoluta
+		@AuraEnabled public String recoveryToken;
 	}
 
 	// ===== Helpers MRW =====
@@ -145,8 +146,8 @@ public without sharing class STCK_CestaDeComprasController {
 			String amountString = setAmountString(wrapper);
 			// String merchantUrl = base + '/services/apexrest/RedsysNotification';
 			String merchantUrl = ''; // según tu snippet actual
-			String urlOk       = setUrlOKKO(true);
-			String urlKo       = setUrlOKKO(false);
+			String urlOk       = setUrlOKKO(true, wrapper);
+			String urlKo       = setUrlOKKO(false, wrapper);
 			//
 			String order12 = orderOptionsObject.order12;
 			String fuc9   = setFuc();
@@ -204,11 +205,11 @@ public without sharing class STCK_CestaDeComprasController {
 		public String rawOrder;
 		public String order12;
 	}
-	/** @description: Change decimal OrderNumber to String */
-	private static orderOptions createOrdeOptions(Decimal orderNumber){
+	/** @description: Change OrderNumber to String */
+	private static orderOptions createOrdeOptions(String orderNumber){
 		orderOptions orderOptionsObject = new orderOptions();
 		orderOptionsObject.rawOrder = String.valueOf(orderNumber).trim();
-		orderOptionsObject.order12 = (rawOrder.length() > 12) ? rawOrder.substring(0, 12) : rawOrder.leftPad(12, '0');
+		orderOptionsObject.order12 = (orderOptionsObject.rawOrder.length() > 12) ? orderOptionsObject.rawOrder.substring(0, 12) : orderOptionsObject.rawOrder.leftPad(12, '0');
 		return orderOptionsObject;
 	}
 	/**  */
@@ -297,7 +298,7 @@ public without sharing class STCK_CestaDeComprasController {
 		return amountString;
 	}
 	
-	private static string setUrlOKKO(Boolean blOK){
+	private static string setUrlOKKO(Boolean blOK, RequestWrapper wrapper){
 		String base = String.isBlank(wrapper.siteUrl) ? '' : wrapper.siteUrl.trim();
 		while (base.endsWith('/')) base = base.substring(0, base.length()-1);
 		String sURL = base + ( blOK ? '/latiendadelequipo/s/pago-exitoso' : '/latiendadelequipo/s/pago-fallido' );
@@ -741,34 +742,46 @@ public without sharing class STCK_CestaDeComprasController {
 	// 
 	@AuraEnabled(cacheable=false)
 	public static BridgeParamsDTO createOrderAndGetBridgeParams(RequestWrapper wrapper) {
-		// Proceso para crear la peticio
-		PeticionMaterial__c peticion = processPeticionMaterial(wrapper);
-		orderOptions orderOptionsObject = createOrdeOptions(peticion.OrderNumber__c);
-		//Importe → céntimos
-		String amountString = setAmountString(wrapper);
-		// String merchantUrl = base + '/services/apexrest/RedsysNotification';
-		String merchantUrl = ''; // según tu snippet actual
-		String urlOk       = setUrlOKKO(true);
-		String urlKo       = setUrlOKKO(false);
-		String fuc9   = setFuc();
-		
-		BridgeParamsDTO dto = new BridgeParamsDTO();
-		dto.bridgeUrl                   = 'https://redsys-php-1.onrender.com/bridge_redsys.php';
-		dto.DS_MERCHANT_AMOUNT          = amountString;
-		dto.DS_MERCHANT_ORDER           = orderOptionsObject.order12;
-		dto.DS_MERCHANT_MERCHANTCODE    = fuc9;
-		dto.DS_MERCHANT_CURRENCY        = '978';
-		dto.DS_MERCHANT_TRANSACTIONTYPE = '0';
-		dto.DS_MERCHANT_TERMINAL        = redsysConfig.STCK_Terminal__c;
-		dto.DS_MERCHANT_MERCHANTURL     = merchantUrl;
-		dto.DS_MERCHANT_URLOK           = urlOk;
-		dto.DS_MERCHANT_URLKO           = urlKo;
+		Savepoint sp = Database.setSavepoint();
+		try {
+			// Proceso para crear la peticio
+			PeticionMaterial__c peticion = processPeticionMaterial(wrapper);
+			orderOptions orderOptionsObject = createOrdeOptions(peticion.OrderNumber__c);
+			//Importe → céntimos
+			String amountString = setAmountString(wrapper);
+			// String merchantUrl = base + '/services/apexrest/RedsysNotification';
+			String merchantUrl = ''; // según tu snippet actual
+			String urlOk       = setUrlOKKO(true, wrapper);
+			String urlKo       = setUrlOKKO(false, wrapper);
+			String fuc9   = setFuc();
+			
+			BridgeParamsDTO dto = new BridgeParamsDTO();
+			dto.bridgeUrl                   = 'https://redsys-php-1.onrender.com/bridge_redsys.php';
+			dto.DS_MERCHANT_AMOUNT          = amountString;
+			dto.DS_MERCHANT_ORDER           = orderOptionsObject.order12;
+			dto.DS_MERCHANT_MERCHANTCODE    = fuc9;
+			dto.DS_MERCHANT_CURRENCY        = '978';
+			dto.DS_MERCHANT_TRANSACTIONTYPE = '0';
+			dto.DS_MERCHANT_TERMINAL        = redsysConfig.STCK_Terminal__c;
+			dto.DS_MERCHANT_MERCHANTURL     = merchantUrl;
+			dto.DS_MERCHANT_URLOK           = urlOk;
+			dto.DS_MERCHANT_URLKO           = urlKo;
+			dto.recoveryToken    		    = peticion.RecoveryToken__c;
 
-		if( orderOptionsObject.order12 != orderOptionsObject.rawOrder ){
-			peticion.OrderNumber__c = orderOptionsObject.order12;
-			update peticion;
+			if( orderOptionsObject.order12 != orderOptionsObject.rawOrder ){
+				peticion.OrderNumber__c = orderOptionsObject.order12;
+				update peticion;
+			}
+
+			return dto;
+		}catch(Exception e){
+			Database.rollback(sp);
+			String msg = 'Error en el proceso de pago: ' + e.getMessage() +
+				' | Tipo: ' + e.getTypeName() +
+				' | Línea: ' + e.getLineNumber() +
+				' | Stack: ' + e.getStackTraceString();
+			System.debug(LoggingLevel.ERROR, 'DEBUG: ' + msg);
+			throw new AuraHandledException(e.getMessage());
 		}
-		
-		return dto;
 	}
 }
