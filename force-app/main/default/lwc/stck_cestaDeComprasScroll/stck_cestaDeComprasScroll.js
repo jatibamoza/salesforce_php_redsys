@@ -3,6 +3,7 @@ import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 // Apex
 import createOrderAndGetRedsysParams from '@salesforce/apex/STCK_CestaDeComprasController.createOrderAndGetRedsysParams';
+import createOrderAndGetBridgeParams from '@salesforce/apex/STCK_CestaDeComprasController.createOrderAndGetBridgeParams';
 import verifyRedsysSignature from '@salesforce/apex/STCK_CestaDeComprasController.verifyRedsysSignature';
 import checkIfStoreIsOpen from '@salesforce/apex/STCK_CestaDeComprasController.checkIfStoreIsOpen';
 import getStoreConfiguration from '@salesforce/apex/STCK_CestaDeComprasController.getStoreConfiguration';
@@ -265,7 +266,7 @@ export default class Stck_cestaDeComprasScroll extends LightningElement {
 
 		const wrapper = this.createRequestWrapper();
 
-		createOrderAndGetRedsysParams({ wrapper })
+		createOrderAndGetBridgeParams({ wrapper })//createOrderAndGetRedsysParams({ wrapper })
 			.then((params) => {
 				if (!params || !params.redsysUrl) {
 					throw new Error('Parámetros de RedSys vacíos o incompletos.');
@@ -284,8 +285,21 @@ export default class Stck_cestaDeComprasScroll extends LightningElement {
 				} catch (_e) {}
 
 				// Enviar al TPV
-				requestAnimationFrame(() => {
+				/*requestAnimationFrame(() => {
 					setTimeout(() => this.submitToRedsys(params), 0);
+					});
+				})
+				.catch((error) => {
+					this._submitting = false;
+					const msg =
+					(error && error.body && error.body.message) ||
+					(error && error.message) ||
+					'No se pudo iniciar el proceso de pago.';
+					this.showToast('Error', msg, 'error');
+				});*/
+
+				requestAnimationFrame(() => {
+					setTimeout(() => this.submitToBridge(params), 0);
 					});
 				})
 				.catch((error) => {
@@ -428,5 +442,76 @@ export default class Stck_cestaDeComprasScroll extends LightningElement {
 	// ---- Utilidad ----
 	showToast(title, message, variant) {
 		this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+	}
+	// ---- Llama a Bridge de PHP ----
+	async submitToBridge(params) {
+		if (this._submitting) return;
+		this._submitting = true;
+
+		try {
+
+			const doc = window.top.document;
+			const host = doc && doc.body ? doc.body : null;
+			if (!host) {
+				this._submitting = false;
+				this.showToast('Error', 'No se encontró <body> para crear el formulario de pago.', 'error');
+				return;
+			}
+			// Validación mínima
+			const bridgeUrl = params.bridgeUrl;
+			if (!bridgeUrl || !/^https?:\/\//i.test(bridgeUrl)) {
+				this._submitting = false;
+				this.showToast('Error', 'URL del Bridge inválida.', 'error');
+				return;
+			}
+
+			const form = doc.createElement('form');
+			form.action = bridgeUrl;              // ⬅️ tu bridge_redsys.php (p.ej. https://tu-dominio/bridge_redsys.php)
+			form.method = 'POST';
+			form.target = '_self';
+			form.style.display = 'none';
+			form.setAttribute('accept-charset', 'UTF-8');
+
+			const addHidden = (name, value) => {
+				const input = doc.createElement('input');
+				input.type = 'hidden';
+				input.name = name;
+				input.value = value != null ? String(value) : '';
+				form.appendChild(input);
+			};
+
+			// ⬇️ Campos EXACTOS que espera el bridge
+			addHidden('DS_MERCHANT_AMOUNT',          params.DS_MERCHANT_AMOUNT);
+			addHidden('DS_MERCHANT_ORDER',           params.DS_MERCHANT_ORDER);
+			addHidden('DS_MERCHANT_MERCHANTCODE',    params.DS_MERCHANT_MERCHANTCODE);
+			addHidden('DS_MERCHANT_CURRENCY',        params.DS_MERCHANT_CURRENCY);
+			addHidden('DS_MERCHANT_TRANSACTIONTYPE', params.DS_MERCHANT_TRANSACTIONTYPE);
+			addHidden('DS_MERCHANT_TERMINAL',        params.DS_MERCHANT_TERMINAL);
+			addHidden('DS_MERCHANT_MERCHANTURL',     params.DS_MERCHANT_MERCHANTURL);
+			addHidden('DS_MERCHANT_URLOK',           params.DS_MERCHANT_URLOK);
+			addHidden('DS_MERCHANT_URLKO',           params.DS_MERCHANT_URLKO);
+
+			host.appendChild(form);
+
+			try {
+				console.log('--- POST que va al Bridge ---');
+				[...form.elements].forEach(i => console.log(i.name, '=', i.value));
+			} catch (e) {
+				console.warn('No se pudo loguear el formulario antes del submit:', e);
+			}
+
+			setTimeout(() => {
+				try { 
+					form.submit(); 
+				} catch (err) {
+					this._submitting = false;
+					this.showToast('Error', 'No se pudo enviar el formulario al Bridge: ' + (err?.message || err), 'error');
+				}
+			}, 0);
+
+		} catch (e) {
+			this._submitting = false;
+			this.showToast('Error', 'No se pudo redirigir al Bridge: ' + (e?.message || e), 'error');
+		}
 	}
 }
