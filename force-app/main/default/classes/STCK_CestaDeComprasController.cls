@@ -139,6 +139,7 @@ public without sharing class STCK_CestaDeComprasController {
 	public static PaymentGatewayResponse createOrderAndGetRedsysParams(RequestWrapper wrapper) {
 		Savepoint sp = Database.setSavepoint();
 		try {
+			STCK_RedsysConfig__mdt redsysConfig = getRedsysConfig();
 			// Proceso para crear la peticio
 			PeticionMaterial__c peticion = processPeticionMaterial(wrapper);
 			orderOptions orderOptionsObject = createOrdeOptions(peticion.OrderNumber__c);
@@ -146,8 +147,8 @@ public without sharing class STCK_CestaDeComprasController {
 			String amountString = setAmountString(wrapper);
 			// String merchantUrl = base + '/services/apexrest/RedsysNotification';
 			String merchantUrl = ''; // según tu snippet actual
-			String urlOk       = setUrlOKKO(true, wrapper);
-			String urlKo       = setUrlOKKO(false, wrapper);
+			String urlOk       = setUrlOKKO(true, false,wrapper);
+			String urlKo       = setUrlOKKO(false, false,wrapper);
 			//
 			String order12 = orderOptionsObject.order12;
 			String fuc9   = setFuc();
@@ -298,15 +299,21 @@ public without sharing class STCK_CestaDeComprasController {
 		return amountString;
 	}
 	
-	private static string setUrlOKKO(Boolean blOK, RequestWrapper wrapper){
+	private static string setUrlOKKO(Boolean blOK, Boolean blMerchantUrl, RequestWrapper wrapper){
 		String base = String.isBlank(wrapper.siteUrl) ? '' : wrapper.siteUrl.trim();
 		while (base.endsWith('/')) base = base.substring(0, base.length()-1);
-		String sURL = base + ( blOK ? '/latiendadelequipo/s/pago-exitoso' : '/latiendadelequipo/s/pago-fallido' );
+		String sURL = '';
+		if( blMerchantUrl ){
+			sURL = base + '/services/apexrest/RedsysNotification';
+		}else{
+			sURL = base + ( blOK ? '/latiendadelequipo/s/pago-exitoso' : '/latiendadelequipo/s/pago-fallido' );
+		}
+		
 		return sURL;
 	}
 	
 	private static string setFuc(){
-		String fucRaw = ( redsysConfig.STCK_FUC__c == null ? '' : redsysConfig.STCK_FUC__c.trim());
+		String fucRaw = ( redsysConfig != null && redsysConfig.STCK_FUC__c == null ? '' : redsysConfig.STCK_FUC__c.trim());
 		String fuc9   = fucRaw.leftPad(9, '0');
 		return fuc9;
 	}
@@ -744,15 +751,15 @@ public without sharing class STCK_CestaDeComprasController {
 	public static BridgeParamsDTO createOrderAndGetBridgeParams(RequestWrapper wrapper) {
 		Savepoint sp = Database.setSavepoint();
 		try {
+			STCK_RedsysConfig__mdt redsysConfig = getRedsysConfig();
 			// Proceso para crear la peticio
 			PeticionMaterial__c peticion = processPeticionMaterial(wrapper);
 			orderOptions orderOptionsObject = createOrdeOptions(peticion.OrderNumber__c);
 			//Importe → céntimos
 			String amountString = setAmountString(wrapper);
-			// String merchantUrl = base + '/services/apexrest/RedsysNotification';
-			String merchantUrl = ''; // según tu snippet actual
-			String urlOk       = setUrlOKKO(true, wrapper);
-			String urlKo       = setUrlOKKO(false, wrapper);
+			String merchantUrl = setUrlOKKO(null, true, wrapper);
+			String urlOk       = setUrlOKKO(true, false,wrapper);
+			String urlKo       = setUrlOKKO(false, false,wrapper);
 			String fuc9   = setFuc();
 			
 			BridgeParamsDTO dto = new BridgeParamsDTO();
@@ -767,7 +774,7 @@ public without sharing class STCK_CestaDeComprasController {
 			dto.DS_MERCHANT_URLOK           = urlOk;
 			dto.DS_MERCHANT_URLKO           = urlKo;
 			dto.recoveryToken    		    = peticion.RecoveryToken__c;
-
+			System.debug('##dto: ' + dto);
 			if( orderOptionsObject.order12 != orderOptionsObject.rawOrder ){
 				peticion.OrderNumber__c = orderOptionsObject.order12;
 				update peticion;
